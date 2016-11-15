@@ -78,3 +78,4 @@ endif(WIN32)
 
 add_subdirectory(llvm-3.5)
 add_subdirectory(mc-sema)
+add_subdirectory(mcsema-python)
