@@ -41,3 +41,4 @@ package
 *.rpm
 ./mc-sema/validator/valTool/obj-ia32
 # Clang, which is tracked independently.
+.idea

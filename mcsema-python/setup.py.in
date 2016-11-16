@@ -1,0 +1,13 @@
+
+from setuptools import setup, Extension
+
+mcsema_ext = Extension(name="mcsema",
+	sources=[${MCSEMA_EXT_SRC_PY}],
+	include_dirs=[${MCSEMA_EXT_INCLUDE_DIRS_PY}],
+	library_dirs=[${MCSEMA_EXT_LIBRARY_DIRS_PY}],
+	libraries=[${MCSEMA_EXT_LIBRARIES_PY}],
+	extra_compile_args=["-fPIC"])
+
+setup(name="mcsema",
+	version="1.0",
+	ext_modules=[mcsema_ext])
