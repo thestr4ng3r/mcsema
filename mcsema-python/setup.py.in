@@ -6,7 +6,8 @@ mcsema_ext = Extension(name="mcsema",
 	include_dirs=[${MCSEMA_EXT_INCLUDE_DIRS_PY}],
 	library_dirs=[${MCSEMA_EXT_LIBRARY_DIRS_PY}],
 	libraries=[${MCSEMA_EXT_LIBRARIES_PY}],
-	extra_compile_args=["-fPIC"])
+	extra_compile_args=["-fPIC", "-std=c++11"],
+	language="c++")
 
 setup(name="mcsema",
 	version="1.0",
