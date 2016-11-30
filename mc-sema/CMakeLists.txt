@@ -90,6 +90,8 @@ add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../llvm-3.5/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/../llvm-3.5/include)
 
+add_definitions(-fPIC)
+
 add_subdirectory(cfgToLLVM)
 add_subdirectory(peToCFG)
 add_subdirectory(bitcode_from_cfg)

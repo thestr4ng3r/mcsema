@@ -18,5 +18,6 @@ else()
   
   add_definitions( -DHAVE_CONFIG_H )
   add_definitions( -Wno-deprecated )
+  add_definitions(-fPIC)
 endif()
 

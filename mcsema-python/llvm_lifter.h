@@ -6,16 +6,25 @@
 #define MC_SEMA_LLVM_LIFTER_H
 
 #include <string>
+#include <vector>
+
+#include "cfg_recover.h"
 
 class LLVMLifter
 {
 	private:
-		std::string s;
+		std::vector<std::string> entry_symbol; // TODO
+		std::vector<std::string> entry_point; // TODO
+
+		bool ignore_native_entry_points = true;
+		bool debug_mode = false;
+
+		NativeModulePtr MakeNativeModule(ExecutableContainer *exc, ExternalFunctionMap &funcs);
 
 	public:
-		LLVMLifter(std::string s);
+		LLVMLifter();
 
-		std::string Test(std::string a, std::string b);
+		int BinDescend(std::string in_filename, std::string out_filename);
 };
 
 #endif //MC_SEMA_LLVM_LIFTER_H
