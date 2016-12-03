@@ -59,6 +59,7 @@ set(MCSEMA_EXT_LIBRARIES
 		LLVMMCDisassembler LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen
 		LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMX86Info
 		LLVMX86AsmPrinter LLVMX86Utils ${Boost_LIBRARIES} protobuf
+		LLVMSupport LLVMObject LLVMMC LLVMMCParser
 		${Boost_Python_LIBRARIES})
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/../../lib)
@@ -122,6 +123,8 @@ add_custom_command(OUTPUT ${TIMESTAMP_FILE}
 		DEPENDS ${MCSEMA_PYTHON_SRC})
 
 add_custom_target(mcsema-python ALL DEPENDS ${TIMESTAMP_FILE})
+
 add_dependencies(mcsema-python boost)
+add_dependencies(bin_descend binary_common peToCFG LLVMX86CodeGen)
 
 install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
