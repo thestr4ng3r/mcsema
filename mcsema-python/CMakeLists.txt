@@ -11,12 +11,7 @@ set(MCSEMA_EXT_SRC
 		llvm_lifter.cpp
 		bin_descend_py.cpp
 		cfg_recover.cpp
-		ExternalFuncMap.cpp
-		)
-
-add_library(mcsema_ext SHARED EXCLUDE_FROM_ALL ${MCSEMA_EXT_SRC})
-
-#set_target_properties(mcsema_ext PROPERTIES PREFIX "")
+		ExternalFuncMap.cpp)
 
 set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
@@ -40,7 +35,7 @@ include_directories(${MCSEMA_EXT_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-#include_directories()
+
 
 
 
@@ -52,19 +47,52 @@ set(MCSEMA_EXT_LIBRARY_DIRS
 		${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 		${ROOT_BINARY_DIR}/mc-sema/peToCFG
 		${ROOT_BINARY_DIR}/llvm-3.5/lib
-		${ROOT_BINARY_DIR}/mc-sema/protobuf-cmake/libprotobuf)
+		${ROOT_BINARY_DIR}/mc-sema/protobuf-cmake/libprotobuf
+		${ROOT_BINARY_DIR}/mc-sema/binary_common/pe-parse/parser-library)
 
 set(MCSEMA_EXT_LIBRARIES
-		binary_common cfgToLLVM peToCFG LLVMBitReader LLVMBitWriter
-		LLVMMCDisassembler LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen
-		LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMX86Info
-		LLVMX86AsmPrinter LLVMX86Utils ${Boost_LIBRARIES} protobuf
-		LLVMSupport LLVMObject LLVMMC LLVMMCParser
-		${Boost_Python_LIBRARIES})
+		cfgToLLVM
+		peToCFG
+		binary_common)
 
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
+		pe-parser-library
+		LLVMBitReader
+		LLVMBitWriter
+		LLVMMCDisassembler
+		LLVMX86Disassembler
+		LLVMX86AsmParser
+		LLVMX86CodeGen
+		LLVMSelectionDAG
+		LLVMAsmPrinter
+		LLVMX86Desc
+		LLVMX86Info
+		LLVMX86AsmPrinter
+		LLVMX86Utils
+		LLVMSupport
+		LLVMObject
+		LLVMMC
+		LLVMCore
+		LLVMMCParser
+		LLVMCodeGen
+		LLVMTarget
+		LLVMAnalysis
+		LLVMTransformUtils
+		LLVMipa
+		LLVMScalarOpts
+		LLVMInstCombine
+		boost_python-mt-d
+		protobuf
+		boost_filesystem-mt-d
+		boost_system-mt-d
+		tinfo)
+
+link_directories(${MCSEMA_EXT_LIBRARY_DIRS})
+
+add_library(mcsema_ext SHARED EXCLUDE_FROM_ALL ${MCSEMA_EXT_SRC})
 
 target_link_libraries(mcsema_ext ${MCSEMA_EXT_LIBRARIES})
+target_link_libraries(mcsema_ext "-Wl,--whole-archive" ${MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
 
 add_dependencies(mcsema_ext binary_common peToCFG cfgToLLVM LLVMX86CodeGen)
 
@@ -96,6 +124,12 @@ endfunction(to_python_list)
 
 
 
+set(MCSEMA_EXT_LINK_ARGS "-Wl,--whole-archive")
+foreach(l ${MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE})
+	list(APPEND MCSEMA_EXT_LINK_ARGS "-l${l}")
+endforeach(l)
+list(APPEND MCSEMA_EXT_LINK_ARGS "-Wl,--no-whole-archive")
+
 
 to_python_list(PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/"
 		OUTPUT MCSEMA_EXT_SRC_PY
@@ -109,6 +143,10 @@ to_python_list(OUTPUT MCSEMA_EXT_LIBRARY_DIRS_PY
 
 to_python_list(OUTPUT MCSEMA_EXT_LIBRARIES_PY
 		ENTRIES ${MCSEMA_EXT_LIBRARIES})
+
+to_python_list(OUTPUT MCSEMA_EXT_LINK_ARGS_PY
+		ENTRIES ${MCSEMA_EXT_LINK_ARGS})
+
 
 
 set(SETUP_PY "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
