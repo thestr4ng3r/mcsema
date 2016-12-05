@@ -8,16 +8,17 @@ const char *test();
 
 
 //void init_mcsema();
-//int bin_descend(std::string in_filename, std::string out_filename);
 
 
 
 BOOST_PYTHON_MODULE(mcsema)
 {
-	def("test", test);
-
 	//def("initialize", InitializeLLVMLifter);
 
 	class_<LLVMLifter>("LLVMLifter", init<>())
-			.def("bin_descend", &LLVMLifter::BinDescend);
+			.def("bin_descend", &LLVMLifter::BinDescend)
+			.add_property("arch", &LLVMLifter::GetSystemArch, &LLVMLifter::SetSystemArch)
+			.add_property("func_maps", &LLVMLifter::GetFunctionMaps, &LLVMLifter::SetFunctionMaps)
+			.add_property("entry_symbols", &LLVMLifter::GetEntrySymbols, &LLVMLifter::SetEntrySymbols)
+			.add_property("entry_points", &LLVMLifter::GetEntryPoints, &LLVMLifter::GetEntryPoints);
 }

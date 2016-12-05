@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <bincomm.h>
 #include <peToCFG.h>
 #include <LExcn.h>
-#include "../common/to_string.h"
+#include "to_string.h"
 #include "ExternalFuncMap.h"
 #include "X86.h"
 #include "Externals.h"

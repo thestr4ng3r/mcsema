@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 
 #include "ExternalFuncMap.h"
-#include "../common/Defaults.h"
+#include "Defaults.h"
 
 #include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>

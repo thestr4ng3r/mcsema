@@ -12,7 +12,7 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/DataTypes.h"
 #include "llvm/Support/Debug.h"
-#include "cfg_recover.h"
+#include "bin_descend/cfg_recover.h"
 #include <bincomm.h>
 #include <peToCFG.h>
 #include <LExcn.h>
@@ -46,9 +46,6 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 	llvm::Triple *triple;
 
 
-	string system_arch = ""; // TODO
-
-
 	//make an LLVM target that is appropriate
 	const Target  *x86Target = NULL;
 	for(TargetRegistry::iterator it = TargetRegistry::begin(),
@@ -64,6 +61,12 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 		}
 	}
 
+	if(!x86Target)
+	{
+		outs() << "No target.\n";
+		return 0;
+	}
+
 	if(!system_arch.compare("x86-64"))
 	{
 		triple = new Triple(DEFAULT_TRIPLE_X64);
@@ -76,21 +79,18 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 
 
 
-	vector<string> func_map; // TODO
+	/*vector<string> func_map; // TODO
 	func_map.push_back(string("std_defs.txt"));
 	func_map.push_back(string("custom_defs.txt"));
-	func_map.push_back(string("other_mapping.txt"));
+	func_map.push_back(string("other_mapping.txt"));*/
 
 	ExternalFunctionMap funcs(triple->getTriple());
 
 	try
 	{
-		if(func_map.size())
+		for(unsigned i = 0; i < boost::python::len(func_maps); i++)
 		{
-			for(unsigned i = 0; i < func_map.size(); ++i)
-			{
-				funcs.parseMap(func_map[i]);
-			}
+			funcs.parseMap(boost::python::extract<string>(func_maps[i]));
 		}
 	}
 	catch (LErr &l)
@@ -130,7 +130,7 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 
 
 	//sanity
-	if(entry_symbol.size() == 0 && entry_point.size() == 0)
+	if(boost::python::len(entry_symbols) == 0 && boost::python::len(entry_points) == 0)
 	{
 		std::uint64_t file_ep;
 		// maybe this file format specifies an entry point?
@@ -212,28 +212,25 @@ NativeModulePtr LLVMLifter::MakeNativeModule(ExecutableContainer *exc, ExternalF
 	list<NativeFunctionPtr> recoveredFuncs;
 	LLVMByteDecoder         byteDec(exc->target);
 
-	if(entry_point.size())
+	for(unsigned i = 0; i < boost::python::len(entry_points); i++)
 	{
-		for(unsigned i = 0; i < entry_point.size(); i++)
-		{
-			//get the entry point from the command line
-			std::uint64_t      tmp = 0;
-			std::string ep = entry_point[i];
-			stringstream  ss;
-			if(ep.size() > 2 && ep[0] == '0' && ep[1] == 'x') {
-				ss << hex << ep;
-			} else {
-				ss << ep;
-			}
+		//get the entry point from the command line
+		std::uint64_t      tmp = 0;
+		std::string ep = boost::python::extract<string>(entry_points[i]);
+		stringstream  ss;
+		if(ep.size() > 2 && ep[0] == '0' && ep[1] == 'x')
+			ss << hex << ep;
+		else
+			ss << ep;
 
-			ss >> tmp;
-			//entryPoints.push_back(((VA)tmp));
-			entryPoints.push_back(tmp);
-			entrySymbols.push_back(NativeModule::EntrySymbol(tmp));
-		}
+		ss >> tmp;
+		//entryPoints.push_back(((VA)tmp));
+		entryPoints.push_back(tmp);
+		entrySymbols.push_back(NativeModule::EntrySymbol(tmp));
 	}
 
-	if(entry_symbol.size()) {
+	if(boost::python::len(entry_symbols))
+	{
 		//have to look this symbol up from the ExecutableContainer
 		list<pair<string, VA> > t;
 		if(!exc->get_exports(t))
@@ -241,9 +238,9 @@ NativeModulePtr LLVMLifter::MakeNativeModule(ExecutableContainer *exc, ExternalF
 			throw LErr(__LINE__, __FILE__, "Could not parse export table");
 		}
 
-		for(unsigned i = 0; i < entry_symbol.size(); i++)
+		for(unsigned i = 0; i < boost::python::len(entry_symbols); i++)
 		{
-			std::string es = entry_symbol[i];
+			std::string es = boost::python::extract<string>(entry_symbols[i]);
 
 			for(list<pair<string, VA> >::iterator it = t.begin(), e = t.end();
 				it != e;
@@ -283,7 +280,8 @@ NativeModulePtr LLVMLifter::MakeNativeModule(ExecutableContainer *exc, ExternalF
 	}
 
 
-	if(entryPoints.size() == 0) {
+	if(entryPoints.size() == 0)
+	{
 		throw LErr(__LINE__, __FILE__, "No good entry points found or supplied");
 	}
 

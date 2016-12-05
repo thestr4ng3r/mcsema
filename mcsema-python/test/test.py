@@ -3,4 +3,8 @@ import mcsema
 
 lifter = mcsema.LLVMLifter()
 
-lifter.bin_descend("test", "test2")
+lifter.arch = "x86"
+lifter.func_maps = ["../../mc-sema/std_defs/linux.txt"]
+lifter.entry_symbols = ["start"]
+
+lifter.bin_descend("input/demo_test1.o", "test2")
