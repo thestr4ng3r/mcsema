@@ -84,6 +84,9 @@ set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
 		LLVMAnalysis
 		LLVMTransformUtils
 		LLVMipa
+		LLVMipo
+		LLVMObjCARCOpts
+		LLVMInstrumentation
 		LLVMScalarOpts
 		LLVMInstCombine
 		boost_python-mt-d

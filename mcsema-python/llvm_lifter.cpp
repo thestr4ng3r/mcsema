@@ -15,6 +15,9 @@
 #include "bin_descend/cfg_recover.h"
 #include <bincomm.h>
 #include <peToCFG.h>
+#include <toLLVM.h>
+#include <toModule.h>
+#include <raiseX86.h>
 #include <LExcn.h>
 #include <iostream>
 #include <fstream>
@@ -24,6 +27,10 @@
 #include "../mc-sema/common/to_string.h"
 #include "../mc-sema/common/Defaults.h"
 
+#include <boost/tokenizer.hpp>
+#include <boost/foreach.hpp>
+#include <boost/algorithm/string.hpp>
+#include <llvm/IR/Verifier.h>
 
 #include "llvm_lifter.h"
 
@@ -42,30 +49,32 @@ void InitializeLLVMLifter()
 
 LLVMLifter::LLVMLifter()
 {
+	system_arch = "";
+	x86_target = 0;
 }
 
-int LLVMLifter::BinDescend(string in_filename, string out_filename)
+void LLVMLifter::SetSystemArch(string system_arch)
 {
+	this->system_arch = system_arch;
 
-	llvm::Triple *triple;
-
-
-	//make an LLVM target that is appropriate
-	const Target  *x86Target = NULL;
-	for(TargetRegistry::iterator it = TargetRegistry::begin(),
-				e = TargetRegistry::end();
-		it != e;
-		++it)
+	x86_target = 0;
+	for(TargetRegistry::iterator it = TargetRegistry::begin(), e = TargetRegistry::end(); it != e; it++)
 	{
 		const Target  &t = *it;
 		if(string(t.getName()) == system_arch)
 		{
-			x86Target = &t;
+			x86_target = &t;
 			break;
 		}
 	}
 
-	if(!x86Target)
+}
+
+int LLVMLifter::BinDescend(string in_filename, string out_filename)
+{
+	//llvm::Triple *triple;
+
+	if(!x86_target)
 	{
 		outs() << "No target.\n";
 		return 0;
@@ -111,7 +120,7 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 
 	try
 	{
-		exc = ExecutableContainer::open(in_filename, x86Target, prior_knowledge);
+		exc = ExecutableContainer::open(in_filename, x86_target, prior_knowledge);
 	}
 	catch (LErr &l)
 	{
@@ -144,10 +153,10 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 	if(exc->is_open())
 	{
 		//convert to native CFG
-		NativeModulePtr m;
+		//NativeModulePtr m;
 		try
 		{
-			m = MakeNativeModule(exc, funcs);
+			module = MakeNativeModule(exc, funcs);
 		}
 		catch(LErr &l)
 		{
@@ -155,7 +164,7 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 			return -1;
 		}
 
-		string outS = dumpProtoBuf(m);
+		//string outS = dumpProtoBuf(module);
 
 		outs() << "Finished.\n";
 
@@ -352,3 +361,408 @@ NativeModulePtr LLVMLifter::MakeNativeModule(ExecutableContainer *exc, ExternalF
 	//done
 	return m;
 }
+
+
+
+
+// cfg_to_bc
+
+
+llvm::Module  *getLLVMModule(string name, const std::string &triple)
+{
+	llvm::Module  *M = new llvm::Module(name, llvm::getGlobalContext());
+	llvm::Triple TT = llvm::Triple(triple);
+	M->setTargetTriple(triple);
+
+
+	std::string layout;
+
+	if(TT.getOS() == llvm::Triple::Win32) {
+		if(TT.getArch() == llvm::Triple::x86) {
+			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f80:128:128-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32";
+		} else if(TT.getArch() == llvm::Triple::x86_64) {
+			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128" ;
+		} else {
+			std::cerr << "Unsupported arch in triple: " << triple << "\n";
+			return nullptr;
+		}
+	} else if (TT.getOS() == llvm::Triple::Linux) {
+		if(TT.getArch() == llvm::Triple::x86) {
+			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S128";
+		} else if(TT.getArch() == llvm::Triple::x86_64) {
+			// x86_64-linux-gnu
+			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128";
+		} else {
+			std::cerr << "Unsupported arch in triple: " << triple << "\n";
+			return nullptr;
+		}
+	} else {
+		std::cerr << "Unsupported OS in triple: " << triple << "\n";
+		return nullptr;
+	}
+
+	M->setDataLayout(layout);
+
+	doGlobalInit(M);
+
+	return M;
+}
+
+
+struct DriverEntry
+{
+	bool is_raw;
+	bool returns;
+	int  argc;
+	string name;
+	string sym;
+	string sign;
+	VA ep;
+	ExternalCodeRef::CallingConvention cconv;
+};
+
+
+
+static VA string_to_int(const std::string &s) {
+	VA ret;
+	if(s.size() > 1 && (s[1] == 'x' || s[1] == 'X')) {
+		ret = strtol(s.c_str(), NULL, 16);
+	} else {
+		ret = strtol(s.c_str(), NULL, 10);
+	}
+
+	// sanity check
+	if( ret == 0 && s[0] != '0') {
+		throw LErr(__LINE__, __FILE__, "Could not convert string to int: "+s);
+	}
+
+	return ret;
+}
+
+static bool driverArgsToDriver(const string &args, DriverEntry &new_d) {
+
+	boost::char_separator<char> sep(",");
+	boost::tokenizer<boost::char_separator<char> >  toks(args, sep);
+	vector<string>  vtok;
+	BOOST_FOREACH(const string &t, toks) {
+					vtok.push_back(t);
+				}
+
+	if(vtok.size() >= 7) {
+		return false;
+	}
+
+	// take name as is
+	new_d.name = vtok[0];
+
+	string sym_or_ep = vtok[1];
+	char fl = sym_or_ep[0];
+	// if the first letter is 0-9, assume its entry address
+	if(fl >= '0' && fl <= '9') {
+		new_d.sym = "";
+		new_d.ep = string_to_int(sym_or_ep);
+	} else {
+		// if its not, assume entry symbol
+		new_d.ep = 0;
+		new_d.sym = sym_or_ep;
+	}
+
+	// check if this driver is raw
+	boost::algorithm::to_lower(vtok[2]);
+	if(vtok[2] == "raw") {
+		new_d.is_raw = true;
+	} else {
+		// if not, parse number of arguments
+		new_d.is_raw = false;
+		new_d.argc = (int)string_to_int(vtok[2]);
+	}
+
+	// check if this "returns" or "noreturns"
+	boost::algorithm::to_lower(vtok[3]);
+	if(vtok[3] == "return") {
+		new_d.returns = true;
+	} else if (vtok[3] == "noreturn") {
+		new_d.returns = false;
+	} else {
+		return false;
+	}
+
+	if(vtok[4] == "F") {
+		new_d.cconv = ExternalCodeRef::FastCall;
+	} else if(vtok[4] == "C") {
+		new_d.cconv = ExternalCodeRef::CallerCleanup;
+	} else if(vtok[4] == "E") {
+		// default to stdcall
+		new_d.cconv = ExternalCodeRef::CalleeCleanup;
+	} else if(vtok[4] == "S") {
+		// default to stdcall
+		new_d.cconv = ExternalCodeRef::X86_64_SysV;
+	} else if(vtok[4] == "W") {
+		new_d.cconv = ExternalCodeRef::X86_64_Win64;
+	}
+	else {
+		return false;
+	}
+
+	if(vtok.size() >= 6){
+		boost::algorithm::to_upper(vtok[5]);
+		new_d.sign = vtok[5];
+	}
+
+	return true;
+}
+
+
+static bool findSymInModule(NativeModulePtr mod, const std::string &sym, VA &ep) {
+	const vector<NativeModule::EntrySymbol> &syms = mod->getEntryPoints();
+	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin();
+		itr != syms.end();
+		itr++ )
+	{
+		if(itr->getName() == sym) {
+			ep = itr->getAddr();
+			return true;
+		}
+	}
+
+	ep = 0;
+	return false;
+}
+
+// check if an entry point (to_find) is in the list of possible
+// entry points for this module
+static bool findEPInModule(NativeModulePtr mod, VA to_find, VA &ep) {
+	const vector<NativeModule::EntrySymbol> &syms = mod->getEntryPoints();
+	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin();
+		itr != syms.end();
+		itr++ )
+	{
+		if(itr->getAddr() == to_find) {
+			ep = to_find;
+			return true;
+		}
+	}
+
+	ep = 0;
+	return false;
+}
+
+static bool haveDriverFor(const std::vector<DriverEntry> &drvs,
+						  const std::string &epname )
+{
+	for(std::vector<DriverEntry>::const_iterator it = drvs.begin();
+		it != drvs.end();
+		it++)
+	{
+		// already have a driver for this entry point
+		if (epname == it->sym) {
+			cout << "Already have driver for: " << epname << std::endl;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+int LLVMLifter::CFGToBC(std::string OutputFilename)
+{
+	cout << "Triple: " << triple->getTriple() << endl;
+
+	vector<DriverEntry> drivers;
+	try
+	{
+		for(unsigned i = 0; i < python::len(drivers_args); i++)
+		{
+			string driverArgs = python::extract<string>(drivers_args[i]);
+			DriverEntry d;
+			if(!driverArgsToDriver(driverArgs, d))
+			{
+				llvm::errs() << "Could not parse driver argument: " << driverArgs << "\n";
+				return 0;
+			}
+			drivers.push_back(d);
+		}
+	}
+	catch(std::exception &e)
+	{
+		cout << "error: " << endl << e.what() << endl;
+		return 0;
+	}
+
+	//reproduce NativeModule from CFG input argument
+	/*cout << "Reading module ..." << endl;
+	NativeModulePtr mod = readModule(InputFilename, ProtoBuff, list<VA>(), x86Target);
+	if(mod == NULL) {
+		cerr << "Could not process input module: " << InputFilename << std::endl;
+		return -2;
+	}*/
+
+
+	if(!module)
+	{
+		outs() << "No module.\n";
+		return 0;
+	}
+
+
+	// set native module target
+	cout << "Setting initial triples..." << endl;
+	module->setTarget(x86_target);
+	module->setTargetTriple(triple->getTriple());
+
+	const std::vector<NativeModule::EntrySymbol>& native_eps = module->getEntryPoints();
+	std::vector<NativeModule::EntrySymbol>::const_iterator natep_it;
+	cout << "Looking at entry points..."  << endl;
+	for( natep_it = native_eps.begin();
+		 natep_it != native_eps.end();
+		 natep_it++)
+	{
+		const std::string &epname = natep_it->getName();
+		if(! haveDriverFor(drivers, epname) && natep_it->hasExtra() ) {
+			DriverEntry d;
+			d.name = "driver_"+epname;
+			d.sym = epname;
+			d.ep = 0;
+			d.argc = natep_it->getArgc();
+			d.is_raw = false;
+			d.returns = natep_it->doesReturn();
+			d.cconv = natep_it->getConv();
+			drivers.push_back(d);
+			cout << "Automatically generating driver for: " << epname << std::endl;
+		}
+	}
+
+
+	if(drivers.size() == 0) {
+		cout << "At least one driver must be specified. Please use the -driver option\n";
+		return -1;
+	}
+
+	if(!module)
+	{
+		cout << "Unable to read module from CFG" << endl;
+		return -1;
+	}
+
+	/*bool OutputModule = false;
+	if(OutputModule)
+		doPrintModule(mod);*/
+
+
+	/*bool IgnoreUnsupported = false;
+	if(IgnoreUnsupported)
+	{
+		ignoreUnsupportedInsts = true;
+	}*/
+
+	//now, convert it to an LLVM module
+	cout << "Getting LLVM module..."  << endl;
+	llvm::Module  *M = getLLVMModule(module->name(), triple->getTriple());
+
+	if(!M)
+	{
+		cout << "Unable to get LLVM module" << endl;
+		return -1;
+	}
+
+	bool  modResult = false;
+
+	try {
+		cout << "Converting to LLVM..."  << endl;
+		modResult = natModToModule(module, M, outs());
+	} catch(std::exception &e) {
+		cout << "error: " << endl << e.what() << endl;
+		return -1;
+	}
+
+	if( modResult )
+	{
+		try {
+			for(vector<DriverEntry>::const_iterator itr = drivers.begin();
+				itr != drivers.end();
+				itr++)
+			{
+
+				VA ep = 0;
+
+				// if this is a symbolic reference, look it up
+				if(itr->ep == 0 && itr->sym != "") {
+					if(!findSymInModule(module, itr->sym, ep)) {
+						llvm::errs() << "Could not find entry point: " << itr->sym << "; aborting\n";
+						return -1;
+					}
+
+				} else {
+					// if this is an address reference, make sure its
+					// a valid entry point
+					if(!findEPInModule(module, itr->ep, ep)) {
+						llvm::errs() << "Could not find entry address: " <<
+									 to_string<VA>(itr->ep, hex) << "; aborting\n";
+						return -1;
+					}
+				}
+
+				cout << "Adding entry point: " << itr->name << std::endl;
+
+				if(itr->is_raw == true)
+				{
+					if(module->is64Bit()) x86_64::addEntryPointDriverRaw(M, itr->name, ep);
+					else x86::addEntryPointDriverRaw(M, itr->name, ep);
+				}
+				else
+				{
+					if(module->is64Bit()) {
+						x86_64::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv, itr->sign);
+					} else {
+						x86::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv);
+					}
+
+				}
+
+			} // for vector<DriverEntry>
+
+
+
+			string                  errorInfo;
+			llvm::tool_output_file  Out(OutputFilename.c_str(),
+										errorInfo,
+										sys::fs::F_None);
+
+			bool EnablePostAnalysis = true; // TODO
+
+			if(EnablePostAnalysis) {
+				cout << "Doing post analysis passes...\n";
+				doPostAnalysis(module, M);
+			} else {
+				cout << "NOT doing post analysis passes.\n";
+			}
+
+
+			bool ShouldVerify = true; // TODO
+
+			// will abort if verification fails
+			if(ShouldVerify && llvm::verifyModule(*M, &errs())) {
+				cerr << "Could not verify module!\n";
+				return -1;
+			}
+
+			M->addModuleFlag(llvm::Module::Error, "Debug Info Version", DEBUG_METADATA_VERSION);
+			M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
+
+			WriteBitcodeToFile(M, Out.os());
+			Out.keep();
+		} catch(std::exception &e) {
+			cout << "error: " << endl << e.what() << endl;
+			return -1;
+		}
+	}
+	else
+	{
+		cout << "Failure to convert to LLVM module!" << endl;
+	}
+
+	return 0;
+}
+
+
