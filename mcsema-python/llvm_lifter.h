@@ -46,4 +46,6 @@ class LLVMLifter
 		void SetEntryPoints(boost::python::list entry_points)	{ this->entry_points = entry_points; }
 };
 
+void InitializeLLVMLifter();
+
 #endif //MC_SEMA_LLVM_LIFTER_H

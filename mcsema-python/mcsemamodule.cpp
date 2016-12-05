@@ -4,16 +4,10 @@
 
 using namespace boost::python;
 
-const char *test();
-
-
-//void init_mcsema();
-
-
 
 BOOST_PYTHON_MODULE(mcsema)
 {
-	//def("initialize", InitializeLLVMLifter);
+	def("initialize", InitializeLLVMLifter);
 
 	class_<LLVMLifter>("LLVMLifter", init<>())
 			.def("bin_descend", &LLVMLifter::BinDescend)

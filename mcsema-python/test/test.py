@@ -1,6 +1,8 @@
 
 import mcsema
 
+mcsema.initialize()
+
 lifter = mcsema.LLVMLifter()
 
 lifter.arch = "x86"
