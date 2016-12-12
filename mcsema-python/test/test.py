@@ -1,7 +1,7 @@
 
 import mcsema
 import llvmlite.binding as llvm
-from ctypes import CFUNCTYPE, c_int, c_long
+from ctypes import CFUNCTYPE, c_int, c_long, c_double
 
 mcsema.initialize()
 
@@ -23,8 +23,8 @@ print("cfg_to_bc")
 print("-------")
 
 driver = mcsema.DriverEntry()
-driver.is_raw = True
-driver.argc = 0
+driver.is_raw = False
+driver.argc = 1
 driver.returns = True
 driver.name = "demo_entry"
 driver.sym = "start"
@@ -44,7 +44,7 @@ f.close()
 
 
 
-quit()
+#quit()
 
 
 llvm.initialize()
@@ -62,7 +62,25 @@ engine = llvm.create_mcjit_compiler(backing_mod, target_machine)
 
 
 
-mod = llvm.parse_bitcode(bitcode)
+#mod = llvm.parse_bitcode(bitcode)
+
+llvm_ir = """
+   ; ModuleID = "examples/ir_fpadd.py"
+   target triple = "unknown-unknown-unknown"
+   target datalayout = ""
+
+   define double @"fpadd"(double %".1", double %".2")
+   {
+   entry:
+     %"res" = fadd double %".1", %".2"
+     ret double %"res"
+   }
+   """
+
+llvm_ir = open("test1_opt.ll").read()
+
+mod = llvm.parse_assembly(llvm_ir)
+
 mod.verify()
 
 engine.add_module(mod)
@@ -70,7 +88,18 @@ engine.finalize_object()
 
 
 
-func_ptr = engine.get_pointer_to_global(mod.get_function("demo_entry"))
+# func_ptr = engine.get_pointer_to_global(mod.get_function("fpadd"))
+# cfunc = CFUNCTYPE(c_double, c_double, c_double)(func_ptr)
+# res = cfunc(1.0, 3.5)
+# print("fpadd(...) =", res)
+#
+#
+#
+func = mod.get_function("demo_entry")
+func_ptr = engine.get_pointer_to_global(func)
 
-#cfunc = CFUNCTYPE(c_int, c_long)(func_ptr)
-#cfunc(1, 0)
+print func
+
+
+cfunc = CFUNCTYPE(c_int)(func_ptr)
+print cfunc(c_int(1))

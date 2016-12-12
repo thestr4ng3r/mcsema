@@ -268,7 +268,7 @@ NativeModulePtr LLVMLifter::MakeNativeModule(ExecutableContainer *exc, ExternalF
 	if(ignore_native_entry_points == false)
 	{
 		//get entry points from the file too
-		list<pair<string, std::uint64_t> > tmp;
+		list<pair<string, VA>> tmp;
 		exc->get_exports(tmp);
 
 		for(list<pair<string, std::uint64_t> >::iterator it = tmp.begin(), e = tmp.end(); it != e; ++it)
@@ -378,26 +378,32 @@ llvm::Module  *getLLVMModule(string name, const std::string &triple)
 
 	std::string layout;
 
-	if(TT.getOS() == llvm::Triple::Win32) {
-		if(TT.getArch() == llvm::Triple::x86) {
+	if(TT.getOS() == llvm::Triple::Win32)
+	{
+		if(TT.getArch() == llvm::Triple::x86)
 			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f80:128:128-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32";
-		} else if(TT.getArch() == llvm::Triple::x86_64) {
-			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128" ;
-		} else {
-			std::cerr << "Unsupported arch in triple: " << triple << "\n";
-			return nullptr;
-		}
-	} else if (TT.getOS() == llvm::Triple::Linux) {
-		if(TT.getArch() == llvm::Triple::x86) {
-			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S128";
-		} else if(TT.getArch() == llvm::Triple::x86_64) {
-			// x86_64-linux-gnu
+		else if(TT.getArch() == llvm::Triple::x86_64)
 			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128";
-		} else {
+		else
+		{
 			std::cerr << "Unsupported arch in triple: " << triple << "\n";
 			return nullptr;
 		}
-	} else {
+	}
+	else if (TT.getOS() == llvm::Triple::Linux)
+	{
+		if(TT.getArch() == llvm::Triple::x86)
+			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S128";
+		else if(TT.getArch() == llvm::Triple::x86_64)
+			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"; // x86_64-linux-gnu
+		else
+		{
+			std::cerr << "Unsupported arch in triple: " << triple << "\n";
+			return nullptr;
+		}
+	}
+	else
+	{
 		std::cerr << "Unsupported OS in triple: " << triple << "\n";
 		return nullptr;
 	}
@@ -412,103 +418,29 @@ llvm::Module  *getLLVMModule(string name, const std::string &triple)
 
 
 
-static VA string_to_int(const std::string &s) {
+static VA string_to_int(const std::string &s)
+{
 	VA ret;
-	if(s.size() > 1 && (s[1] == 'x' || s[1] == 'X')) {
+	if(s.size() > 1 && (s[1] == 'x' || s[1] == 'X'))
 		ret = strtol(s.c_str(), NULL, 16);
-	} else {
+	else
 		ret = strtol(s.c_str(), NULL, 10);
-	}
 
 	// sanity check
-	if( ret == 0 && s[0] != '0') {
+	if( ret == 0 && s[0] != '0')
 		throw LErr(__LINE__, __FILE__, "Could not convert string to int: "+s);
-	}
 
 	return ret;
 }
 
-static bool driverArgsToDriver(const string &args, DriverEntry &new_d) {
 
-	boost::char_separator<char> sep(",");
-	boost::tokenizer<boost::char_separator<char> >  toks(args, sep);
-	vector<string>  vtok;
-	BOOST_FOREACH(const string &t, toks) {
-					vtok.push_back(t);
-				}
-
-	if(vtok.size() >= 7) {
-		return false;
-	}
-
-	// take name as is
-	new_d.name = vtok[0];
-
-	string sym_or_ep = vtok[1];
-	char fl = sym_or_ep[0];
-	// if the first letter is 0-9, assume its entry address
-	if(fl >= '0' && fl <= '9') {
-		new_d.sym = "";
-		new_d.ep = string_to_int(sym_or_ep);
-	} else {
-		// if its not, assume entry symbol
-		new_d.ep = 0;
-		new_d.sym = sym_or_ep;
-	}
-
-	// check if this driver is raw
-	boost::algorithm::to_lower(vtok[2]);
-	if(vtok[2] == "raw") {
-		new_d.is_raw = true;
-	} else {
-		// if not, parse number of arguments
-		new_d.is_raw = false;
-		new_d.argc = (int)string_to_int(vtok[2]);
-	}
-
-	// check if this "returns" or "noreturns"
-	boost::algorithm::to_lower(vtok[3]);
-	if(vtok[3] == "return") {
-		new_d.returns = true;
-	} else if (vtok[3] == "noreturn") {
-		new_d.returns = false;
-	} else {
-		return false;
-	}
-
-	if(vtok[4] == "F") {
-		new_d.cconv = ExternalCodeRef::FastCall;
-	} else if(vtok[4] == "C") {
-		new_d.cconv = ExternalCodeRef::CallerCleanup;
-	} else if(vtok[4] == "E") {
-		// default to stdcall
-		new_d.cconv = ExternalCodeRef::CalleeCleanup;
-	} else if(vtok[4] == "S") {
-		// default to stdcall
-		new_d.cconv = ExternalCodeRef::X86_64_SysV;
-	} else if(vtok[4] == "W") {
-		new_d.cconv = ExternalCodeRef::X86_64_Win64;
-	}
-	else {
-		return false;
-	}
-
-	if(vtok.size() >= 6){
-		boost::algorithm::to_upper(vtok[5]);
-		new_d.sign = vtok[5];
-	}
-
-	return true;
-}
-
-
-static bool findSymInModule(NativeModulePtr mod, const std::string &sym, VA &ep) {
+static bool findSymInModule(NativeModulePtr mod, const std::string &sym, VA &ep)
+{
 	const vector<NativeModule::EntrySymbol> &syms = mod->getEntryPoints();
-	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin();
-		itr != syms.end();
-		itr++ )
+	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin(); itr != syms.end(); itr++)
 	{
-		if(itr->getName() == sym) {
+		if(itr->getName() == sym)
+		{
 			ep = itr->getAddr();
 			return true;
 		}
@@ -520,13 +452,13 @@ static bool findSymInModule(NativeModulePtr mod, const std::string &sym, VA &ep)
 
 // check if an entry point (to_find) is in the list of possible
 // entry points for this module
-static bool findEPInModule(NativeModulePtr mod, VA to_find, VA &ep) {
+static bool findEPInModule(NativeModulePtr mod, VA to_find, VA &ep)
+{
 	const vector<NativeModule::EntrySymbol> &syms = mod->getEntryPoints();
-	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin();
-		itr != syms.end();
-		itr++ )
+	for(vector<NativeModule::EntrySymbol>::const_iterator itr = syms.begin(); itr != syms.end(); itr++)
 	{
-		if(itr->getAddr() == to_find) {
+		if(itr->getAddr() == to_find)
+		{
 			ep = to_find;
 			return true;
 		}
@@ -558,45 +490,11 @@ int LLVMLifter::CFGToBC()
 {
 	cout << "Triple: " << triple->getTriple() << endl;
 
-
-	// parse driver args
-	/*vector<DriverEntry> drivers;
-	try
-	{
-		for(unsigned i = 0; i < python::len(drivers_args); i++)
-		{
-			string driverArgs = python::extract<string>(drivers_args[i]);
-			DriverEntry d;
-			if(!driverArgsToDriver(driverArgs, d))
-			{
-				llvm::errs() << "Could not parse driver argument: " << driverArgs << "\n";
-				return 0;
-			}
-			drivers.push_back(d);
-		}
-	}
-	catch(std::exception &e)
-	{
-		cout << "error: " << endl << e.what() << endl;
-		return 0;
-	}*/
-
-
 	vector<DriverEntry> drivers;
 
 	for(unsigned int i=0; i<python::len(driver_entries); i++)
 		drivers.push_back(python::extract<DriverEntry>(driver_entries[i]));
 
-
-
-
-	//reproduce NativeModule from CFG input argument
-	/*cout << "Reading module ..." << endl;
-	NativeModulePtr mod = readModule(InputFilename, ProtoBuff, list<VA>(), x86Target);
-	if(mod == NULL) {
-		cerr << "Could not process input module: " << InputFilename << std::endl;
-		return -2;
-	}*/
 
 
 	if(!module)
@@ -614,9 +512,7 @@ int LLVMLifter::CFGToBC()
 	const std::vector<NativeModule::EntrySymbol>& native_eps = module->getEntryPoints();
 	std::vector<NativeModule::EntrySymbol>::const_iterator natep_it;
 	cout << "Looking at entry points..."  << endl;
-	for( natep_it = native_eps.begin();
-		 natep_it != native_eps.end();
-		 natep_it++)
+	for(natep_it = native_eps.begin(); natep_it != native_eps.end(); natep_it++)
 	{
 		const std::string &epname = natep_it->getName();
 		if(!haveDriverFor(drivers, epname) && natep_it->hasExtra() )
@@ -641,12 +537,6 @@ int LLVMLifter::CFGToBC()
 		return -1;
 	}
 
-	/*if(!module)
-	{
-		cout << "Unable to read module from CFG" << endl;
-		return -1;
-	}*/
-
 	/*bool OutputModule = false;
 	if(OutputModule)
 		doPrintModule(mod);*/
@@ -668,12 +558,15 @@ int LLVMLifter::CFGToBC()
 		return -1;
 	}
 
-	bool  modResult = false;
+	bool modResult = false;
 
-	try {
+	try
+	{
 		cout << "Converting to LLVM..."  << endl;
 		modResult = natModToModule(module, M, outs());
-	} catch(std::exception &e) {
+	}
+	catch(std::exception &e)
+	{
 		cout << "error: " << endl << e.what() << endl;
 		return -1;
 	}
@@ -729,10 +622,13 @@ int LLVMLifter::CFGToBC()
 
 			bool EnablePostAnalysis = true; // TODO
 
-			if(EnablePostAnalysis) {
+			if(EnablePostAnalysis)
+			{
 				cout << "Doing post analysis passes...\n";
 				doPostAnalysis(module, M);
-			} else {
+			}
+			else
+			{
 				cout << "NOT doing post analysis passes.\n";
 			}
 
@@ -740,7 +636,8 @@ int LLVMLifter::CFGToBC()
 			bool ShouldVerify = true; // TODO
 
 			// will abort if verification fails
-			if(ShouldVerify && llvm::verifyModule(*M, &errs())) {
+			if(ShouldVerify && llvm::verifyModule(*M, &errs()))
+			{
 				cerr << "Could not verify module!\n";
 				return -1;
 			}
