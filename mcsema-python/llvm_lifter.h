@@ -35,14 +35,20 @@ class LLVMLifter
 
 
 
-		boost::python::list drivers_args;
+		//boost::python::list drivers_args;
+		boost::python::list driver_entries;
+
+
+
+
+		std::string bitcode_data;
 
 	public:
 		LLVMLifter();
 
-		int BinDescend(std::string in_filename, std::string out_filename);
+		int BinDescend(std::string in_filename);
 
-		int CFGToBC(std::string OutputFilename);
+		int CFGToBC();
 
 
 		std::string GetSystemArch() const						{ return system_arch; }
@@ -57,9 +63,30 @@ class LLVMLifter
 		boost::python::list GetEntryPoints() const 				{ return entry_points; }
 		void SetEntryPoints(boost::python::list entry_points)	{ this->entry_points = entry_points; }
 
-		boost::python::list GetDriversArgs() const				{ return drivers_args; }
-		void SetDriversArgs(boost::python::list drivers_args)	{ this->drivers_args = drivers_args; }
+		//boost::python::list GetDriversArgs() const				{ return drivers_args; }
+		//void SetDriversArgs(boost::python::list drivers_args)	{ this->drivers_args = drivers_args; }
+
+		boost::python::list GetDrivers() const				{ return driver_entries; }
+		void SetDrivers(boost::python::list drivers)		{ this->driver_entries = drivers; }
+
+
+
+		std::string GetBitcode() const	 						{ return bitcode_data; }
 };
+
+
+struct DriverEntry
+{
+	bool is_raw;
+	bool returns;
+	int  argc;
+	std::string name;
+	std::string sym;
+	std::string sign;
+	VA ep;
+	ExternalCodeRef::CallingConvention cconv;
+};
+
 
 void InitializeLLVMLifter();
 

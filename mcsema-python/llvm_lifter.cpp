@@ -8,6 +8,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Bitcode/BitstreamWriter.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/DataTypes.h"
@@ -70,7 +71,7 @@ void LLVMLifter::SetSystemArch(string system_arch)
 
 }
 
-int LLVMLifter::BinDescend(string in_filename, string out_filename)
+int LLVMLifter::BinDescend(string in_filename)
 {
 	//llvm::Triple *triple;
 
@@ -82,7 +83,7 @@ int LLVMLifter::BinDescend(string in_filename, string out_filename)
 
 	if(!system_arch.compare("x86-64"))
 	{
-		triple = new Triple(DEFAULT_TRIPLE_X64);
+		triple = new Triple("x86_64-pc-linux-gnu"); //DEFAULT_TRIPLE_X64);
 	}
 	else
 	{
@@ -409,18 +410,6 @@ llvm::Module  *getLLVMModule(string name, const std::string &triple)
 }
 
 
-struct DriverEntry
-{
-	bool is_raw;
-	bool returns;
-	int  argc;
-	string name;
-	string sym;
-	string sign;
-	VA ep;
-	ExternalCodeRef::CallingConvention cconv;
-};
-
 
 
 static VA string_to_int(const std::string &s) {
@@ -565,11 +554,13 @@ static bool haveDriverFor(const std::vector<DriverEntry> &drvs,
 }
 
 
-int LLVMLifter::CFGToBC(std::string OutputFilename)
+int LLVMLifter::CFGToBC()
 {
 	cout << "Triple: " << triple->getTriple() << endl;
 
-	vector<DriverEntry> drivers;
+
+	// parse driver args
+	/*vector<DriverEntry> drivers;
 	try
 	{
 		for(unsigned i = 0; i < python::len(drivers_args); i++)
@@ -588,7 +579,16 @@ int LLVMLifter::CFGToBC(std::string OutputFilename)
 	{
 		cout << "error: " << endl << e.what() << endl;
 		return 0;
-	}
+	}*/
+
+
+	vector<DriverEntry> drivers;
+
+	for(unsigned int i=0; i<python::len(driver_entries); i++)
+		drivers.push_back(python::extract<DriverEntry>(driver_entries[i]));
+
+
+
 
 	//reproduce NativeModule from CFG input argument
 	/*cout << "Reading module ..." << endl;
@@ -619,7 +619,8 @@ int LLVMLifter::CFGToBC(std::string OutputFilename)
 		 natep_it++)
 	{
 		const std::string &epname = natep_it->getName();
-		if(! haveDriverFor(drivers, epname) && natep_it->hasExtra() ) {
+		if(!haveDriverFor(drivers, epname) && natep_it->hasExtra() )
+		{
 			DriverEntry d;
 			d.name = "driver_"+epname;
 			d.sym = epname;
@@ -634,16 +635,17 @@ int LLVMLifter::CFGToBC(std::string OutputFilename)
 	}
 
 
-	if(drivers.size() == 0) {
+	if(drivers.size() == 0)
+	{
 		cout << "At least one driver must be specified. Please use the -driver option\n";
 		return -1;
 	}
 
-	if(!module)
+	/*if(!module)
 	{
 		cout << "Unable to read module from CFG" << endl;
 		return -1;
-	}
+	}*/
 
 	/*bool OutputModule = false;
 	if(OutputModule)
@@ -724,10 +726,6 @@ int LLVMLifter::CFGToBC(std::string OutputFilename)
 
 
 
-			string                  errorInfo;
-			llvm::tool_output_file  Out(OutputFilename.c_str(),
-										errorInfo,
-										sys::fs::F_None);
 
 			bool EnablePostAnalysis = true; // TODO
 
@@ -750,19 +748,30 @@ int LLVMLifter::CFGToBC(std::string OutputFilename)
 			M->addModuleFlag(llvm::Module::Error, "Debug Info Version", DEBUG_METADATA_VERSION);
 			M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
 
+			/*string                  errorInfo;
+			llvm::tool_output_file  Out(OutputFilename.c_str(),
+										errorInfo,
+										sys::fs::F_None);
 			WriteBitcodeToFile(M, Out.os());
-			Out.keep();
-		} catch(std::exception &e) {
+			Out.keep();*/
+
+
+			//string bitcode_data;
+			raw_string_ostream os(bitcode_data);
+			WriteBitcodeToFile(M, os);
+			return 1;
+		}
+		catch(std::exception &e)
+		{
 			cout << "error: " << endl << e.what() << endl;
-			return -1;
+			return 0;
 		}
 	}
 	else
 	{
 		cout << "Failure to convert to LLVM module!" << endl;
+		return 0;
 	}
-
-	return 0;
 }
 
 
