@@ -4,7 +4,7 @@ import llvmlite.binding as llvm
 from subprocess import call
 from ctypes import CFUNCTYPE, c_int, c_long, c_double
 
-call("clang -m32 -c -o demo_test.o demo_test.c", shell=True)
+call("clang -O0 -m32 -c -o demo_test.o demo_test.c", shell=True)
 
 mcsema.initialize()
 
@@ -12,7 +12,7 @@ lifter = mcsema.LLVMLifter()
 
 lifter.arch = "x86"
 lifter.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-lifter.entry_symbols = ["fancy_calculation"]
+lifter.entry_symbols = ["switch_func"]
 
 print("-------")
 print("bin_descend")
@@ -30,7 +30,7 @@ driver.is_raw = False
 driver.argc = 1
 driver.returns = True
 driver.name = "demo_entry"
-driver.sym = "fancy_calculation"
+driver.sym = "switch_func"
 driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
@@ -45,6 +45,7 @@ f.write(bitcode)
 f.close()
 
 call("opt -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
+call("llvm-link ../../../cmake-build-debug/mc-sema/runtime/linux_i386_callback.bc demo_test_opt.bc > demo_test_linked.bc", shell=True)
 call("llvm-dis demo_test_opt.bc", shell=True)
 llvm_code = open("demo_test_opt.ll").read()
 print("\n---------------------------------------")
