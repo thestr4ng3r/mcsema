@@ -47,7 +47,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(ROOT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/..)
 
 set(MCSEMA_EXT_LIBRARY_DIRS
-		${Boost_Python_LIBRARY_DIRS}
 		${ROOT_BINARY_DIR}/mc-sema/binary_common
 		${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 		${ROOT_BINARY_DIR}/mc-sema/peToCFG
@@ -89,11 +88,11 @@ set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
 		LLVMInstrumentation
 		LLVMScalarOpts
 		LLVMInstCombine
-		boost_python-mt-d
 		protobuf
-		boost_filesystem-mt-d
-		boost_system-mt-d
-		tinfo)
+		tinfo
+		${Boost_FILESYSTEM_LIBRARY}
+		${Boost_SYSTEM_LIBRARY}
+		${Boost_PYTHON_LIBRARY})
 
 link_directories(${MCSEMA_EXT_LIBRARY_DIRS})
 
