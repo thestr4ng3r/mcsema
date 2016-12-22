@@ -44,9 +44,10 @@ f = open("demo_test.bc", "wb")
 f.write(bitcode)
 f.close()
 
-call("opt -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
-call("llvm-link ../../../cmake-build-debug/mc-sema/runtime/linux_i386_callback.bc demo_test_opt.bc > demo_test_linked.bc", shell=True)
+call("opt -mtriple=i686-pc-linux-gnu -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
+call("llvm-link ../../../cmake-build-debug/mc-sema/runtime/linux_i386_callback.bc demo_test_opt.bc -o demo_test_linked.bc", shell=True)
 call("llvm-dis demo_test_opt.bc", shell=True)
+call("llvm-dis demo_test.bc", shell=True)
 llvm_code = open("demo_test_opt.ll").read()
 print("\n---------------------------------------")
 print("Optimized LLVM Code")
@@ -58,7 +59,7 @@ print("---------------------------------------\n")
 
 
 
-call("llc -filetype=obj -o demo_test_opt_llvm.o demo_test_opt.bc", shell=True)
+call("llc -mtriple=i686-pc-linux-gnu -filetype=obj -o demo_test_opt_llvm.o demo_test_linked.bc", shell=True)
 call("clang -m32 demo_driver.c demo_test_opt_llvm.o -o demo_driver", shell=True)
 call("./demo_driver", shell=True)
 

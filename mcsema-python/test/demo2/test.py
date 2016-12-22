@@ -46,6 +46,7 @@ f.close()
 
 call("opt -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
 call("llvm-dis demo_test_opt.bc", shell=True)
+call("llvm-dis demo_test.bc", shell=True)
 llvm_code = open("demo_test_opt.ll").read()
 print("\n---------------------------------------")
 print("Optimized LLVM Code")
