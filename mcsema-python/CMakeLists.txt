@@ -26,6 +26,7 @@ set(MCSEMA_EXT_INCLUDE_DIRS
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/peToCFG
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/cfgToLLVM
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/binary_common
+		${CMAKE_CURRENT_BINARY_DIR}/../mc-sema/binary_common
 		${CMAKE_CURRENT_SOURCE_DIR}/../llvm-3.5/include
 		${CMAKE_CURRENT_BINARY_DIR}/../llvm-3.5/include
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/common
@@ -50,9 +51,7 @@ set(MCSEMA_EXT_LIBRARY_DIRS
 		${ROOT_BINARY_DIR}/mc-sema/binary_common
 		${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 		${ROOT_BINARY_DIR}/mc-sema/peToCFG
-		${ROOT_BINARY_DIR}/llvm-3.5/lib
-		${ROOT_BINARY_DIR}/mc-sema/protobuf-cmake/libprotobuf
-		${ROOT_BINARY_DIR}/mc-sema/binary_common/pe-parse/parser-library)
+		${ROOT_BINARY_DIR}/llvm-3.5/lib)
 
 set(MCSEMA_EXT_LIBRARIES
 		cfgToLLVM
@@ -88,7 +87,7 @@ set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
 		LLVMInstrumentation
 		LLVMScalarOpts
 		LLVMInstCombine
-		protobuf
+		${PROTOBUF_LIBRARIES}
 		tinfo
 		${Boost_FILESYSTEM_LIBRARY}
 		${Boost_SYSTEM_LIBRARY}

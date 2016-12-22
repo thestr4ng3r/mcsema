@@ -9,6 +9,6 @@ target_link_libraries(cfg_to_bc pe-parser-library cfgToLLVM peToCFG LLVMBitReade
   LLVMMCDisassembler LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen
     LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMX86Info
     LLVMX86AsmPrinter LLVMX86Utils LLVMipo LLVMTransformUtils LLVMScalarOpts
-    LLVMInstrumentation LLVMObjCARCOpts ${Boost_LIBRARIES} libprotobuf)
+    LLVMInstrumentation LLVMObjCARCOpts ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 add_dependencies(cfg_to_bc peToCFG)

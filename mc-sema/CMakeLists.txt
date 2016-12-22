@@ -4,19 +4,21 @@ option(MCSEMA_ENABLE_PIN_VALIDATOR ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-set(PROTOBUF_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/protobuf-2.5.0)
 if( WIN32 OR CYGWIN)
-  # MinGW warns if -fvisibility-inlines-hidden is used.
+	# MinGW warns if -fvisibility-inlines-hidden is used.
 else()
-  include(CheckCXXCompilerFlag)
-  check_cxx_compiler_flag("-fvisibility-inlines-hidden" SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
-  if( SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-  endif()
+	include(CheckCXXCompilerFlag)
+	check_cxx_compiler_flag("-fvisibility-inlines-hidden" SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
+	if( SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG )
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+	endif()
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 endif()
-add_subdirectory(protobuf-cmake)
+
+#[[set(PROTOBUF_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/protobuf-2.5.0)
+
+add_subdirectory(protobuf-cmake)]]
 
 function(PROTOBUF_GENERATE_CPP SRCS HDRS)
   if(NOT ARGN)
@@ -60,7 +62,7 @@ function(PROTOBUF_GENERATE_CPP SRCS HDRS)
     add_custom_command(
       OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc"
              "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h"
-      COMMAND  protoc
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
       ARGS --cpp_out  ${CMAKE_CURRENT_BINARY_DIR} ${_protobuf_include_path} ${ABS_FIL}
       DEPENDS ${ABS_FIL}
       COMMENT "Running C++ protocol buffer compiler on ${FIL}"
@@ -72,11 +74,15 @@ function(PROTOBUF_GENERATE_CPP SRCS HDRS)
   set(${HDRS} ${${HDRS}} PARENT_SCOPE)
 endfunction()
 
+
+
+
+
 #variable for debug or not 
 find_package(Threads REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/common)
-set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/protobuf-2.5.0/src)
+#set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/protobuf-2.5.0/src)
 
 set(TARGET "X86_64")
 if("${TARGET}" STREQUAL "X86_64")

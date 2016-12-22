@@ -5,7 +5,7 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../../llvm-3.5/lib/Target/X86
   ${CMAKE_CURRENT_SOURCE_DIR}/../binary_common )
 
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${PROTOBUF_INCLUDE_DIR} ${PROTO_SRCS} ${PROTO_HDRS})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_BINARY_DIR}/../binary_common ${PROTOBUF_INCLUDE_DIR} ${PROTO_SRCS} ${PROTO_HDRS})
 
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/../../lib)
@@ -14,7 +14,7 @@ add_executable(bin_descend bin_descend.cpp cfg_recover.cpp ExternalFuncMap.cpp)
 target_link_libraries(bin_descend binary_common cfgToLLVM peToCFG LLVMBitReader LLVMBitWriter
   LLVMMCDisassembler LLVMX86Disassembler LLVMX86AsmParser LLVMX86CodeGen
     LLVMSelectionDAG LLVMAsmPrinter LLVMX86Desc LLVMX86Info
-      LLVMX86AsmPrinter LLVMX86Utils ${Boost_LIBRARIES} libprotobuf)
+      LLVMX86AsmPrinter LLVMX86Utils ${Boost_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 add_dependencies(bin_descend binary_common peToCFG LLVMX86CodeGen)
 
