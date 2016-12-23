@@ -2,12 +2,12 @@
 from setuptools import setup, Extension
 
 mcsema_ext = Extension(name="mcsema",
-	sources=[${MCSEMA_EXT_SRC_PY}],
-	include_dirs=[${MCSEMA_EXT_INCLUDE_DIRS_PY}],
-	library_dirs=[${MCSEMA_EXT_LIBRARY_DIRS_PY}],
-	libraries=[${MCSEMA_EXT_LIBRARIES_PY}],
+	sources=[${MCSEMA_PYTHON_SRC_PY}],
+	include_dirs=[${MCSEMA_PYTHON_INCLUDE_DIRS_PY}],
+	library_dirs=[${MCSEMA_PYTHON_LIBRARY_DIRS_PY}],
+	libraries=[${MCSEMA_PYTHON_LIBRARIES_PY}],
 	extra_compile_args=["-fPIC", "-std=c++11", "-Wno-unused-local-typedefs", "-Wno-deprecated-declarations", "-Wno-unused-variable", "-Wno-reorder"],
-	extra_link_args=[${MCSEMA_EXT_LINK_ARGS_PY}],
+	extra_link_args=[${MCSEMA_PYTHON_LINK_ARGS_PY}],
 	language="c++")
 
 setup(name="mcsema",

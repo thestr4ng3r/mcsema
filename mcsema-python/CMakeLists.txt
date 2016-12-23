@@ -8,11 +8,15 @@ option(MCSEMA_PYTHON_BUILD_SETUPTOOLS "Build mcsema python extension using setup
 
 
 
+
 find_package(PythonLibs REQUIRED)
 find_package(PythonInterp REQUIRED)
 
+find_package(Boost REQUIRED COMPONENTS python)
+include_directories(${Boost_INCLUDE_DIRS})
 
-set(MCSEMA_EXT_SRC
+
+set(MCSEMA_PYTHON_SRC
 		mcsemamodule.cpp
 		llvm_lifter.cpp
 		bin_descend/cfg_recover.cpp
@@ -20,7 +24,7 @@ set(MCSEMA_EXT_SRC
 
 set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
-set(MCSEMA_EXT_INCLUDE_DIRS
+set(MCSEMA_PYTHON_INCLUDE_DIRS
 		${LLVM_INCLUDE_DIRS}
 		${LLVM_INSTALL_PREFIX}/llvm/lib/Target/X86
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/peToCFG
@@ -35,7 +39,7 @@ set(MCSEMA_EXT_INCLUDE_DIRS
 		${PROTO_HDRS}
 		${PYTHON_INCLUDE_DIRS})
 
-include_directories(${MCSEMA_EXT_INCLUDE_DIRS})
+include_directories(${MCSEMA_PYTHON_INCLUDE_DIRS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
@@ -45,18 +49,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 set(ROOT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/..)
 
-set(MCSEMA_EXT_LIBRARY_DIRS
+set(MCSEMA_PYTHON_LIBRARY_DIRS
 		${ROOT_BINARY_DIR}/mc-sema/binary_common
 		${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 		${ROOT_BINARY_DIR}/mc-sema/peToCFG
 		${LLVM_LIBRARY_DIRS})
 
-set(MCSEMA_EXT_LIBRARIES
+set(MCSEMA_PYTHON_LIBRARIES
 		cfgToLLVM
 		peToCFG
 		binary_common)
 
-set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
+set(MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE
 		pe-parser-library
 		LLVMBitReader
 		LLVMBitWriter
@@ -91,19 +95,19 @@ set(MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE
 		${Boost_SYSTEM_LIBRARY}
 		${Boost_PYTHON_LIBRARY})
 
-link_directories(${MCSEMA_EXT_LIBRARY_DIRS})
+link_directories(${MCSEMA_PYTHON_LIBRARY_DIRS})
 
 
 if(MCSEMA_PYTHON_BUILD_CMAKE)
-	add_library(mcsema_ext SHARED ${MCSEMA_EXT_SRC})
-	set_target_properties(mcsema_ext PROPERTIES
+	add_library(mcsema-python SHARED ${MCSEMA_PYTHON_SRC})
+	set_target_properties(mcsema-python PROPERTIES
 			OUTPUT_NAME "mcsema"
 			PREFIX "")
 
-	target_link_libraries(mcsema_ext ${MCSEMA_EXT_LIBRARIES})
-	target_link_libraries(mcsema_ext "-Wl,--whole-archive" ${MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
+	target_link_libraries(mcsema-python ${MCSEMA_PYTHON_LIBRARIES})
+	target_link_libraries(mcsema-python "-Wl,--whole-archive" ${MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
 
-	add_dependencies(mcsema_ext binary_common peToCFG cfgToLLVM LLVMX86CodeGen)
+	add_dependencies(mcsema-python binary_common peToCFG cfgToLLVM LLVMX86CodeGen)
 endif(MCSEMA_PYTHON_BUILD_CMAKE)
 
 
@@ -132,28 +136,28 @@ if(MCSEMA_PYTHON_BUILD_SETUPTOOLS)
 
 
 
-	set(MCSEMA_EXT_LINK_ARGS "-Wl,--whole-archive")
-	foreach(l ${MCSEMA_EXT_LIBRARIES_WHOLE_ARCHIVE})
-		list(APPEND MCSEMA_EXT_LINK_ARGS "-l${l}")
+	set(MCSEMA_PYTHON_LINK_ARGS "-Wl,--whole-archive")
+	foreach(l ${MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE})
+		list(APPEND MCSEMA_PYTHON_LINK_ARGS "-l${l}")
 	endforeach(l)
-	list(APPEND MCSEMA_EXT_LINK_ARGS "-Wl,--no-whole-archive")
+	list(APPEND MCSEMA_PYTHON_LINK_ARGS "-Wl,--no-whole-archive")
 
 
 	to_python_list(PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/"
-			OUTPUT MCSEMA_EXT_SRC_PY
-			ENTRIES ${MCSEMA_EXT_SRC})
+			OUTPUT MCSEMA_PYTHON_SRC_PY
+			ENTRIES ${MCSEMA_PYTHON_SRC})
 
-	to_python_list(OUTPUT MCSEMA_EXT_INCLUDE_DIRS_PY
-			ENTRIES ${MCSEMA_EXT_INCLUDE_DIRS})
+	to_python_list(OUTPUT MCSEMA_PYTHON_INCLUDE_DIRS_PY
+			ENTRIES ${MCSEMA_PYTHON_INCLUDE_DIRS})
 
-	to_python_list(OUTPUT MCSEMA_EXT_LIBRARY_DIRS_PY
-			ENTRIES ${MCSEMA_EXT_LIBRARY_DIRS})
+	to_python_list(OUTPUT MCSEMA_PYTHON_LIBRARY_DIRS_PY
+			ENTRIES ${MCSEMA_PYTHON_LIBRARY_DIRS})
 
-	to_python_list(OUTPUT MCSEMA_EXT_LIBRARIES_PY
-			ENTRIES ${MCSEMA_EXT_LIBRARIES})
+	to_python_list(OUTPUT MCSEMA_PYTHON_LIBRARIES_PY
+			ENTRIES ${MCSEMA_PYTHON_LIBRARIES})
 
-	to_python_list(OUTPUT MCSEMA_EXT_LINK_ARGS_PY
-			ENTRIES ${MCSEMA_EXT_LINK_ARGS})
+	to_python_list(OUTPUT MCSEMA_PYTHON_LINK_ARGS_PY
+			ENTRIES ${MCSEMA_PYTHON_LINK_ARGS})
 
 
 
@@ -168,10 +172,7 @@ if(MCSEMA_PYTHON_BUILD_SETUPTOOLS)
 			COMMAND ${CMAKE_COMMAND} -E touch ${TIMESTAMP_FILE}
 			DEPENDS ${MCSEMA_PYTHON_SRC})
 
-	add_custom_target(mcsema-python ALL DEPENDS ${TIMESTAMP_FILE})
-
-	#add_dependencies(mcsema-python boost)
-	#add_dependencies(bin_descend binary_common peToCFG LLVMX86CodeGen)
+	add_custom_target(mcsema-python-setuptools ALL DEPENDS ${TIMESTAMP_FILE})
 
 	install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
 endif(MCSEMA_PYTHON_BUILD_SETUPTOOLS)
