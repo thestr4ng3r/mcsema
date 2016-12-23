@@ -1,6 +1,3 @@
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../../llvm-3.5/lib/Target/X86
-${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-3.5/lib/Target/X86 )
-
 add_subdirectory(pe-parse)
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS CFG.proto)

@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 
 
-option(MCSEMA_PYTHON_BUILD_CMAKE "Build mcsema python extension using cmake." OFF)
-option(MCSEMA_PYTHON_BUILD_SETUPTOOLS "Build mcsema python extension using setuptools." ON)
+option(MCSEMA_PYTHON_BUILD_CMAKE "Build mcsema python extension using cmake." ON)
+option(MCSEMA_PYTHON_BUILD_SETUPTOOLS "Build mcsema python extension using setuptools." OFF)
 
 
 
@@ -21,14 +21,12 @@ set(MCSEMA_EXT_SRC
 set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
 set(MCSEMA_EXT_INCLUDE_DIRS
-		${CMAKE_CURRENT_BINARY_DIR}/../llvm-3.5/lib/Target/X86
-		${CMAKE_CURRENT_SOURCE_DIR}/../llvm-3.5/lib/Target/X86
+		${LLVM_INCLUDE_DIRS}
+		${LLVM_INSTALL_PREFIX}/llvm/lib/Target/X86
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/peToCFG
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/cfgToLLVM
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/binary_common
 		${CMAKE_CURRENT_BINARY_DIR}/../mc-sema/binary_common
-		${CMAKE_CURRENT_SOURCE_DIR}/../llvm-3.5/include
-		${CMAKE_CURRENT_BINARY_DIR}/../llvm-3.5/include
 		${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/common
 		${Boost_INCLUDE_DIRS}
 		${CMAKE_CURRENT_BINARY_DIR}
@@ -51,7 +49,7 @@ set(MCSEMA_EXT_LIBRARY_DIRS
 		${ROOT_BINARY_DIR}/mc-sema/binary_common
 		${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 		${ROOT_BINARY_DIR}/mc-sema/peToCFG
-		${ROOT_BINARY_DIR}/llvm-3.5/lib)
+		${LLVM_LIBRARY_DIRS})
 
 set(MCSEMA_EXT_LIBRARIES
 		cfgToLLVM
@@ -172,8 +170,8 @@ if(MCSEMA_PYTHON_BUILD_SETUPTOOLS)
 
 	add_custom_target(mcsema-python ALL DEPENDS ${TIMESTAMP_FILE})
 
-	add_dependencies(mcsema-python boost)
-	add_dependencies(bin_descend binary_common peToCFG LLVMX86CodeGen)
+	#add_dependencies(mcsema-python boost)
+	#add_dependencies(bin_descend binary_common peToCFG LLVMX86CodeGen)
 
 	install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install --prefix=${CMAKE_INSTALL_PREFIX})")
 endif(MCSEMA_PYTHON_BUILD_SETUPTOOLS)

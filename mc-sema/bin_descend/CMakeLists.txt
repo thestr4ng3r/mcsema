@@ -1,6 +1,4 @@
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../../llvm-3.5/lib/Target/X86
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-3.5/lib/Target/X86
-  ${CMAKE_CURRENT_SOURCE_DIR}/../peToCFG
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../peToCFG
   ${CMAKE_CURRENT_SOURCE_DIR}/../cfgToLLVM 
   ${CMAKE_CURRENT_SOURCE_DIR}/../binary_common )
 

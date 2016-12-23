@@ -1,7 +1,4 @@
-include_directories( ${CMAKE_CURRENT_BINARY_DIR}/../../llvm-3.5/lib/Target/X86 ${CMAKE_CURRENT_SOURCE_DIR}/../../llvm-3.5/lib/Target/X86 ${CMAKE_CURRENT_SOURCE_DIR}/../peToCFG ${CMAKE_CURRENT_SOURCE_DIR}/../cfgToLLVM )
-
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/../../llvm-3.5/lib)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/../../lib)
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../peToCFG ${CMAKE_CURRENT_SOURCE_DIR}/../cfgToLLVM )
 
 add_executable(cfg_to_bc cfg_to_bc.cpp ) 
 

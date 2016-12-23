@@ -12,6 +12,12 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(Protobuf REQUIRED)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-add_subdirectory(llvm-3.5)
+find_package(LLVM REQUIRED)
+include_directories(${LLVM_INCLUDE_DIRS})
+link_directories(${LLVM_LIBRARY_DIRS})
+include_directories(${LLVM_INSTALL_PREFIX}/include/llvm/lib/Target/X86)
+
+
+
 add_subdirectory(mc-sema)
 add_subdirectory(mcsema-python)
