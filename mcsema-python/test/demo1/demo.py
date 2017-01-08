@@ -1,24 +1,27 @@
 
 import mcsema
-import llvmlite.binding as llvm
 from subprocess import call
-from ctypes import CFUNCTYPE, c_int, c_long, c_double
 
 call("nasm -f elf32 -o demo_test1.o demo_test1.asm", shell=True)
 
 mcsema.initialize()
 
-lifter = mcsema.LLVMLifter()
+bin_descend = mcsema.BinDescend()
 
-lifter.arch = "x86"
-lifter.func_maps = [] #["../../mc-sema/std_defs/linux.txt"]
-lifter.entry_symbols = ["start"]
+bin_descend.arch = "x86"
+bin_descend.func_maps = [] #["../../mc-sema/std_defs/linux.txt"]
+bin_descend.entry_symbols = ["start"]
 
 print("-------")
 print("bin_descend")
 print("-------")
-lifter.bin_descend("demo_test1.o")
+bin_descend.execute("demo_test1.o")
 
+
+
+cfg_to_llvm = mcsema.CFGToLLVM()
+cfg_to_llvm.target_triple = bin_descend.target_triple
+cfg_to_llvm.native_module = bin_descend.native_module
 print("")
 print("")
 print("-------")
@@ -43,10 +46,10 @@ driver.sym = "start"
 driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
-lifter.drivers = [driver]
-lifter.cfg_to_bc()
+cfg_to_llvm.drivers = [driver]
+cfg_to_llvm.execute()
 
-bitcode = lifter.bitcode
+bitcode = cfg_to_llvm.bitcode
 
 
 f = open("test1.bc", "wb")
@@ -73,40 +76,40 @@ call("./demo_driver1", shell=True)
 
 
 
-quit()
-
-
-llvm.initialize()
-llvm.initialize_native_target()
-llvm.initialize_native_asmprinter()
-
-llvm.load_library_permanently("/lib/x86_64-linux-gnu/libc.so.6")
-llvm.load_library_permanently("/lib64/ld-linux-x86-64.so.2")
-
-
-
-target = llvm.Target.from_default_triple()
-target_machine = target.create_target_machine()
-
-backing_mod = llvm.parse_assembly("")
-engine = llvm.create_mcjit_compiler(backing_mod, target_machine)
-
-
-
-
-#mod = llvm.parse_bitcode(bitcode)
-mod = llvm.parse_bitcode(open("test1_opt.bc").read())
-mod.verify()
-
-engine.add_module(mod)
-engine.finalize_object()
-
-
-func = mod.get_function("demo_entry")
-func_ptr = engine.get_pointer_to_global(func)
-
-print func
-
-
-cfunc = CFUNCTYPE(c_int)(func_ptr)
-print cfunc(c_int(1))
+# quit()
+#
+#
+# llvm.initialize()
+# llvm.initialize_native_target()
+# llvm.initialize_native_asmprinter()
+#
+# llvm.load_library_permanently("/lib/x86_64-linux-gnu/libc.so.6")
+# llvm.load_library_permanently("/lib64/ld-linux-x86-64.so.2")
+#
+#
+#
+# target = llvm.Target.from_default_triple()
+# target_machine = target.create_target_machine()
+#
+# backing_mod = llvm.parse_assembly("")
+# engine = llvm.create_mcjit_compiler(backing_mod, target_machine)
+#
+#
+#
+#
+# #mod = llvm.parse_bitcode(bitcode)
+# mod = llvm.parse_bitcode(open("test1_opt.bc").read())
+# mod.verify()
+#
+# engine.add_module(mod)
+# engine.finalize_object()
+#
+#
+# func = mod.get_function("demo_entry")
+# func_ptr = engine.get_pointer_to_global(func)
+#
+# print func
+#
+#
+# cfunc = CFUNCTYPE(c_int)(func_ptr)
+# print cfunc(c_int(1))

@@ -1,18 +1,15 @@
-//
-// Created by florian on 23.11.16.
-//
 
-#ifndef MC_SEMA_LLVM_LIFTER_H
-#define MC_SEMA_LLVM_LIFTER_H
+#ifndef _MCSEMA_PYTHON_BIN_DESCEND_H
+#define _MCSEMA_PYTHON_BIN_DESCEND_H
 
 #include <string>
 #include <vector>
 
 #include <boost/python.hpp>
 
-#include "bin_descend/cfg_recover.h"
+#include "cfg_recover.h"
 
-class LLVMLifter
+class BinDescend
 {
 	private:
 		const llvm::Target *x86_target;
@@ -28,28 +25,19 @@ class LLVMLifter
 		bool ignore_native_entry_points = true;
 		bool debug_mode = false;
 
-
 		NativeModulePtr module;
 
 		NativeModulePtr MakeNativeModule(ExecutableContainer *exc, ExternalFunctionMap &funcs);
 
-
-
-		//boost::python::list drivers_args;
-		boost::python::list driver_entries;
-
-
-
-
-		std::string bitcode_data;
-
 	public:
-		LLVMLifter();
+		BinDescend();
 
-		int BinDescend(std::string in_filename);
+		int Execute(std::string in_filename);
 
-		int CFGToBC();
 
+		NativeModulePtr GetNativeModule() const					{ return module; }
+
+		std::string GetTargetTriple() const 					{ return triple->getTriple(); }
 
 		std::string GetSystemArch() const						{ return system_arch; }
 		void SetSystemArch(std::string system_arch);
@@ -62,34 +50,7 @@ class LLVMLifter
 
 		boost::python::list GetEntryPoints() const 				{ return entry_points; }
 		void SetEntryPoints(boost::python::list entry_points)	{ this->entry_points = entry_points; }
-
-		//boost::python::list GetDriversArgs() const				{ return drivers_args; }
-		//void SetDriversArgs(boost::python::list drivers_args)	{ this->drivers_args = drivers_args; }
-
-		boost::python::list GetDrivers() const				{ return driver_entries; }
-		void SetDrivers(boost::python::list drivers)		{ this->driver_entries = drivers; }
-
-
-
-		std::string GetBitcode() const	 						{ return bitcode_data; }
 };
 
 
-struct DriverEntry
-{
-	bool is_raw;
-	bool returns;
-	int  argc;
-	std::string name;
-	std::string sym;
-	std::string sign;
-	VA ep;
-	ExternalCodeRef::CallingConvention cconv;
-};
-
-
-void InitializeLLVMLifter();
-
-
-
-#endif //MC_SEMA_LLVM_LIFTER_H
+#endif

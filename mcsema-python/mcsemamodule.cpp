@@ -1,13 +1,30 @@
 
 #include <boost/python.hpp>
-#include "llvm_lifter.h"
+
+#include "mcsema_init.h"
+#include "bin_descend.h"
+#include "cfg_to_llvm.h"
 
 using namespace boost::python;
 
 
 BOOST_PYTHON_MODULE(mcsema)
 {
-	def("initialize", InitializeLLVMLifter);
+	def("initialize", InitializeMCSema);
+
+
+	class_<NativeModule, boost::shared_ptr<NativeModule>>("NativeModule", no_init);
+
+	class_<BinDescend>("BinDescend", init<>())
+			.def("execute", &BinDescend::Execute)
+			.add_property("arch", &BinDescend::GetSystemArch, &BinDescend::SetSystemArch)
+			.add_property("func_maps", &BinDescend::GetFunctionMaps, &BinDescend::SetFunctionMaps)
+			.add_property("entry_symbols", &BinDescend::GetEntrySymbols, &BinDescend::SetEntrySymbols)
+			.add_property("entry_points", &BinDescend::GetEntryPoints, &BinDescend::GetEntryPoints)
+			.add_property("native_module", &BinDescend::GetNativeModule)
+			.add_property("target_triple", &BinDescend::GetTargetTriple);
+
+
 
 	enum_<ExternalCodeRef::CallingConvention>("calling_convention")
 			.value("caller_cleanup", ExternalCodeRef::CallerCleanup)
@@ -15,7 +32,6 @@ BOOST_PYTHON_MODULE(mcsema)
 			.value("fast_call", ExternalCodeRef::FastCall)
 			.value("x86_64_sysv", ExternalCodeRef::X86_64_SysV)
 			.value("x86_64_win64", ExternalCodeRef::X86_64_Win64);
-
 
 	class_<DriverEntry>("DriverEntry")
 			.def_readwrite("is_raw", &DriverEntry::is_raw)
@@ -27,14 +43,10 @@ BOOST_PYTHON_MODULE(mcsema)
 			.def_readwrite("ep", &DriverEntry::ep)
 			.def_readwrite("cconv", &DriverEntry::cconv);
 
-
-	class_<LLVMLifter>("LLVMLifter", init<>())
-			.def("bin_descend", &LLVMLifter::BinDescend)
-			.def("cfg_to_bc", &LLVMLifter::CFGToBC)
-			.add_property("arch", &LLVMLifter::GetSystemArch, &LLVMLifter::SetSystemArch)
-			.add_property("func_maps", &LLVMLifter::GetFunctionMaps, &LLVMLifter::SetFunctionMaps)
-			.add_property("entry_symbols", &LLVMLifter::GetEntrySymbols, &LLVMLifter::SetEntrySymbols)
-			.add_property("entry_points", &LLVMLifter::GetEntryPoints, &LLVMLifter::GetEntryPoints)
-			.add_property("drivers", &LLVMLifter::GetDrivers, &LLVMLifter::SetDrivers)
-			.add_property("bitcode", &LLVMLifter::GetBitcode);
+	class_<CFGToLLVM>("CFGToLLVM", init<>())
+			.def("execute", &CFGToLLVM::Execute)
+			.add_property("native_module", &CFGToLLVM::GetNativeModule, &CFGToLLVM::SetNativeModule)
+			.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)
+			.add_property("drivers", &CFGToLLVM::GetDrivers, &CFGToLLVM::SetDrivers)
+			.add_property("bitcode", &CFGToLLVM::GetBitcode);
 }

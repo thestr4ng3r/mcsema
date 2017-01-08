@@ -9,18 +9,23 @@ option(MCSEMA_PYTHON_BUILD_SETUPTOOLS "Build mcsema python extension using setup
 
 
 
-find_package(PythonLibs REQUIRED)
-find_package(PythonInterp REQUIRED)
+find_package(PythonLibs 2.7 REQUIRED)
+find_package(PythonInterp 2.7 REQUIRED)
 
 find_package(Boost REQUIRED COMPONENTS python)
 include_directories(${Boost_INCLUDE_DIRS})
 
+set(BIN_DESCEND_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/bin_descend")
+include_directories(${BIN_DESCEND_SRC_DIR})
 
 set(MCSEMA_PYTHON_SRC
 		mcsemamodule.cpp
-		llvm_lifter.cpp
-		bin_descend/cfg_recover.cpp
-		bin_descend/ExternalFuncMap.cpp)
+		${BIN_DESCEND_SRC_DIR}/cfg_recover.cpp
+		${BIN_DESCEND_SRC_DIR}/ExternalFuncMap.cpp
+		bin_descend.cpp
+		bin_descend.h
+		cfg_to_llvm.cpp
+		cfg_to_llvm.h mcsema_init.cpp mcsema_init.h)
 
 set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
