@@ -302,8 +302,8 @@ int CFGToLLVM::Execute()
 				return -1;
 			}
 
-			M->addModuleFlag(llvm::Module::Error, "Debug Info Version", DEBUG_METADATA_VERSION);
-			M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
+			//M->addModuleFlag(llvm::Module::Error, "Debug Info Version", DEBUG_METADATA_VERSION);
+			//M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
 
 			/*string                  errorInfo;
 			llvm::tool_output_file  Out(OutputFilename.c_str(),

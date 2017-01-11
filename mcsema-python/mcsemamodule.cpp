@@ -20,7 +20,9 @@ BOOST_PYTHON_MODULE(mcsema)
 			.add_property("arch", &BinDescend::GetSystemArch, &BinDescend::SetSystemArch)
 			.add_property("func_maps", &BinDescend::GetFunctionMaps, &BinDescend::SetFunctionMaps)
 			.add_property("entry_symbols", &BinDescend::GetEntrySymbols, &BinDescend::SetEntrySymbols)
-			.add_property("entry_points", &BinDescend::GetEntryPoints, &BinDescend::GetEntryPoints)
+			.add_property("entry_points", &BinDescend::GetEntryPoints, &BinDescend::SetEntryPoints)
+			.add_property("ignore_native_entry_points", &BinDescend::GetIgnoreNativeEntryPoints, &BinDescend::SetIgnoreNativeEntryPoints)
+			.add_property("debug_mode", &BinDescend::GetDebugMode, &BinDescend::SetDebugMode)
 			.add_property("native_module", &BinDescend::GetNativeModule)
 			.add_property("target_triple", &BinDescend::GetTargetTriple);
 

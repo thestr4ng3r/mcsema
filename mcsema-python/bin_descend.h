@@ -50,6 +50,12 @@ class BinDescend
 
 		boost::python::list GetEntryPoints() const 				{ return entry_points; }
 		void SetEntryPoints(boost::python::list entry_points)	{ this->entry_points = entry_points; }
+
+		bool GetIgnoreNativeEntryPoints() const 				{ return ignore_native_entry_points; }
+		void SetIgnoreNativeEntryPoints(bool ignore)			{ this->ignore_native_entry_points = ignore; }
+
+		bool GetDebugMode() const 								{ return debug_mode; }
+		void SetDebugMode(bool debug_mode)						{ this->debug_mode = debug_mode; }
 };
 
 
