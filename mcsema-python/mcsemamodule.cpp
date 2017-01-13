@@ -15,8 +15,9 @@ BOOST_PYTHON_MODULE(mcsema)
 
 	class_<NativeModule, boost::shared_ptr<NativeModule>>("NativeModule", no_init);
 
-	class_<BinDescend>("BinDescend", init<>())
+	class_<BinDescend>("BinDescend", init<std::string>())
 			.def("execute", &BinDescend::Execute)
+			.def("execute", &BinDescend::ExecuteAndSave)
 			.add_property("arch", &BinDescend::GetSystemArch, &BinDescend::SetSystemArch)
 			.add_property("func_maps", &BinDescend::GetFunctionMaps, &BinDescend::SetFunctionMaps)
 			.add_property("entry_symbols", &BinDescend::GetEntrySymbols, &BinDescend::SetEntrySymbols)
@@ -47,6 +48,7 @@ BOOST_PYTHON_MODULE(mcsema)
 
 	class_<CFGToLLVM>("CFGToLLVM", init<std::string, object>())
 			.def("execute", &CFGToLLVM::Execute)
+			.def("execute", &CFGToLLVM::ExecuteAndSave)
 			.add_property("native_module", &CFGToLLVM::GetNativeModule, &CFGToLLVM::SetNativeModule)
 			.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)
 			.add_property("drivers", &CFGToLLVM::GetDrivers, &CFGToLLVM::SetDrivers)

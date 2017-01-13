@@ -1,42 +1,36 @@
 
+import sys
+import os.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+import demo_common as common
+
+common.begin()
+
 import mcsema
-import cfg_ida
 from subprocess import call
 
-call("nasm -f elf32 -o demo_test1.o demo_test1.asm", shell=True)
+call("nasm -f elf32 -o demo_test.o demo_test.asm", shell=True)
 
 mcsema.initialize()
 
-# bin_descend = mcsema.BinDescend()
-#
-# bin_descend.arch = "x86"
-# bin_descend.func_maps = [] #["../../mc-sema/std_defs/linux.txt"]
-# bin_descend.entry_symbols = ["start"]
-#
-# print("-------")
-# print("bin_descend")
-# print("-------")
-# bin_descend.execute("demo_test1.o")
+print("---------------------------------------")
+print("Generate CFG")
+print("---------------------------------------")
 
-ida_exec = ""
-
-cfg_gen = cfg_ida.IDACFGGenerator(ida_exec, "../../../mc-sema/bin_descend/get_cfg.py", "demo_test1.o")
-cfg_gen.debug_mode = True
+cfg_gen = common.cfg_generator("demo_test.o")
+cfg_gen.arch = "x86"
+cfg_gen.debug_mode = False
 cfg_gen.func_maps = []
 cfg_gen.entry_symbols = ["start"]
 
-cfg_gen.execute("demo_test1.cfg")
+cfg_gen.execute("demo_test.cfg")
 
 
+print("\n\n---------------------------------------")
+print("Translate to LLVM")
+print("---------------------------------------")
 
-
-print("")
-print("")
-print("-------")
-print("cfg_to_bc")
-print("-------")
-
-cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test1.cfg")
+cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
 
 driver = mcsema.DriverEntry()
 driver.is_raw = True
@@ -48,18 +42,12 @@ driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
 cfg_to_llvm.drivers = [driver]
-cfg_to_llvm.execute()
-
-bitcode = cfg_to_llvm.bitcode
+cfg_to_llvm.execute("demo_test.bc")
 
 
-f = open("test1.bc", "wb")
-f.write(bitcode)
-f.close()
-
-call("opt -O3 test1.bc -o test1_opt.bc", shell=True)
-call("llvm-dis test1_opt.bc", shell=True)
-llvm_code = open("test1_opt.ll").read()
+call("opt -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
+call("llvm-dis demo_test_opt.bc", shell=True)
+llvm_code = open("demo_test_opt.ll").read()
 print("\n---------------------------------------")
 print("Optimized LLVM Code")
 print("---------------------------------------")
@@ -70,6 +58,6 @@ print("---------------------------------------\n")
 
 
 
-call("llc -filetype=obj -o test1_llvm.o test1_opt.bc", shell=True)
-call("clang -m32 demo_driver1.c test1_llvm.o -o demo_driver1", shell=True)
-call("./demo_driver1", shell=True)
+call("llc -filetype=obj -o demo_test_opt_llvm.o demo_test_opt.bc", shell=True)
+call("clang -m32 demo_driver.c demo_test_opt_llvm.o -o demo_driver", shell=True)
+call("./demo_driver", shell=True)

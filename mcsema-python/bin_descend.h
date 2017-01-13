@@ -12,6 +12,8 @@
 class BinDescend
 {
 	private:
+		std::string input_file;
+
 		const llvm::Target *x86_target;
 		llvm::Triple *triple;
 
@@ -30,9 +32,10 @@ class BinDescend
 		NativeModulePtr MakeNativeModule(ExecutableContainer *exc, ExternalFunctionMap &funcs);
 
 	public:
-		BinDescend();
+		BinDescend(std::string input_file);
 
-		int Execute(std::string in_filename);
+		bool Execute();
+		bool ExecuteAndSave(std::string output_file);
 
 
 		NativeModulePtr GetNativeModule() const					{ return module; }

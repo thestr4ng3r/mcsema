@@ -1,23 +1,27 @@
 
+
 import sys
+import os.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+import demo_common as common
+
+common.begin()
+
+
+
+
+import mcsema
 from subprocess import call
-
-if len(sys.argv) == 2:
-	if sys.argv[1] == "clean":
-		call("rm -fv *.o *.ll *.bc", shell=True)
-		quit()
-
-call("rm -f *.o *.ll *.bc", shell=True)
-
-
 
 call("clang -O0 -o password password.c", shell=True)
 
-import mcsema
-
 mcsema.initialize()
 
-bin_descend = mcsema.BinDescend()
+print("---------------------------------------")
+print("Generate CFG")
+print("---------------------------------------")
+
+bin_descend = mcsema.BinDescend("password")
 
 bin_descend.debug_mode = True
 bin_descend.arch = "x86-64"
@@ -25,21 +29,14 @@ bin_descend.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
 bin_descend.entry_symbols = ["main2"]
 bin_descend.ignore_native_entry_points = True
 
-print("-------")
-print("bin_descend")
-print("-------")
-bin_descend.execute("password")
+bin_descend.execute()
 
 
+print("\n\n---------------------------------------")
+print("Translate to LLVM")
+print("---------------------------------------")
 
-cfg_to_llvm = mcsema.CFGToLLVM()
-cfg_to_llvm.target_triple = bin_descend.target_triple
-cfg_to_llvm.native_module = bin_descend.native_module
-print("")
-print("")
-print("-------")
-print("cfg_to_bc")
-print("-------")
+cfg_to_llvm = mcsema.CFGToLLVM(bin_descend.target_triple, bin_descend.native_module)
 
 driver = mcsema.DriverEntry()
 driver.is_raw = True

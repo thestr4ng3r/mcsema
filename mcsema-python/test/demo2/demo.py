@@ -1,4 +1,11 @@
 
+import sys
+import os.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+import demo_common as common
+
+common.begin()
+
 import mcsema
 from subprocess import call
 
@@ -6,23 +13,24 @@ call("clang -m32 -c -o demo_test.o demo_test.c", shell=True)
 
 mcsema.initialize()
 
-bin_descend = mcsema.BinDescend()
+print("---------------------------------------")
+print("Generate CFG")
+print("---------------------------------------")
 
-bin_descend.arch = "x86"
-bin_descend.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-bin_descend.entry_symbols = ["fancy_calculation"]
+cfg_gen = common.cfg_generator("demo_test.o")
+cfg_gen.arch = "x86"
+cfg_gen.debug_mode = False
+cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+cfg_gen.entry_symbols = ["fancy_calculation"]
 
-print("-------")
-print("bin_descend")
-print("-------")
-bin_descend.execute("demo_test.o")
+cfg_gen.execute("demo_test.cfg")
 
-print("")
-print("")
-print("-------")
-print("Convert CFG To LLVM")
-print("-------")
 
+print("\n\n---------------------------------------")
+print("Translate to LLVM")
+print("---------------------------------------")
+
+cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
 
 driver = mcsema.DriverEntry()
 driver.is_raw = False
@@ -33,18 +41,10 @@ driver.sym = "fancy_calculation"
 driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
-cfg_to_llvm = mcsema.CFGToLLVM()
 cfg_to_llvm.drivers = [driver]
-cfg_to_llvm.target_triple = bin_descend.target_triple
-cfg_to_llvm.native_module = bin_descend.native_module
-cfg_to_llvm.execute()
-
-bitcode = cfg_to_llvm.bitcode
+cfg_to_llvm.execute("demo_test.bc")
 
 
-f = open("demo_test.bc", "wb")
-f.write(bitcode)
-f.close()
 
 call("opt -O3 demo_test.bc -o demo_test_opt.bc", shell=True)
 call("llvm-dis demo_test_opt.bc", shell=True)

@@ -28,9 +28,9 @@ class CFGToLLVM
 
 	public:
 		CFGToLLVM(std::string target_triple, boost::python::object input);
-		//CFGToLLVM(std::string target_triple, std::string cfg_file);
 
-		int Execute();
+		bool Execute();
+		bool ExecuteAndSave(std::string output_file);
 
 		const std::string GetTargetTriple() const			{ return target_triple; }
 		void SetTargetTriple(std::string triple)			{ this->target_triple = triple; }

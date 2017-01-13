@@ -168,7 +168,7 @@ void CFGToLLVM::LookupTarget()
 }
 
 
-int CFGToLLVM::Execute()
+bool CFGToLLVM::Execute()
 {
 	vector<DriverEntry> drivers;
 
@@ -176,11 +176,10 @@ int CFGToLLVM::Execute()
 		drivers.push_back(python::extract<DriverEntry>(driver_entries[i]));
 
 
-
 	if(!module)
 	{
 		outs() << "No module.\n";
-		return 0;
+		return false;
 	}
 
 
@@ -214,7 +213,7 @@ int CFGToLLVM::Execute()
 	if(drivers.size() == 0)
 	{
 		cout << "At least one driver must be specified. Please use the -driver option\n";
-		return -1;
+		return false;
 	}
 
 	/*bool OutputModule = false;
@@ -235,7 +234,7 @@ int CFGToLLVM::Execute()
 	if(!M)
 	{
 		cout << "Unable to get LLVM module" << endl;
-		return -1;
+		return false;
 	}
 
 	bool modResult = false;
@@ -248,107 +247,119 @@ int CFGToLLVM::Execute()
 	catch(std::exception &e)
 	{
 		cout << "error: " << endl << e.what() << endl;
-		return -1;
+		return false;
 	}
 
-	if( modResult )
+	if(!modResult)
 	{
-		try {
-			for(vector<DriverEntry>::const_iterator itr = drivers.begin();
-				itr != drivers.end();
-				itr++)
+		cout << "Failure to convert to LLVM module!" << endl;
+		return false;
+	}
+
+
+	try
+	{
+		for(vector<DriverEntry>::const_iterator itr = drivers.begin(); itr != drivers.end(); itr++)
+		{
+			VA ep = 0;
+
+			// if this is a symbolic reference, look it up
+			if(itr->ep == 0 && itr->sym != "")
 			{
-
-				VA ep = 0;
-
-				// if this is a symbolic reference, look it up
-				if(itr->ep == 0 && itr->sym != "") {
-					if(!findSymInModule(module, itr->sym, ep)) {
-						llvm::errs() << "Could not find entry point: " << itr->sym << "; aborting\n";
-						return -1;
-					}
-
-				} else {
-					// if this is an address reference, make sure its
-					// a valid entry point
-					if(!findEPInModule(module, itr->ep, ep)) {
-						llvm::errs() << "Could not find entry address: " <<
-									 to_string<VA>(itr->ep, hex) << "; aborting\n";
-						return -1;
-					}
-				}
-
-				cout << "Adding entry point: " << itr->name << std::endl;
-
-				if(itr->is_raw == true)
+				if(!findSymInModule(module, itr->sym, ep))
 				{
-					if(module->is64Bit())
-						x86_64::addEntryPointDriverRaw(M, itr->name, ep);
-					else
-						x86::addEntryPointDriverRaw(M, itr->name, ep);
+					llvm::errs() << "Could not find entry point: " << itr->sym << "; aborting\n";
+					return false;
 				}
-				else
-				{
-					if(module->is64Bit())
-						x86_64::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv, itr->sign);
-					else
-						x86::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv);
-				}
-
-			} // for vector<DriverEntry>
-
-
-
-
-			bool EnablePostAnalysis = true; // TODO
-
-			if(EnablePostAnalysis)
-			{
-				cout << "Doing post analysis passes...\n";
-				doPostAnalysis(module, M);
 			}
 			else
 			{
-				cout << "NOT doing post analysis passes.\n";
+				// if this is an address reference, make sure its
+				// a valid entry point
+				if(!findEPInModule(module, itr->ep, ep))
+				{
+					llvm::errs() << "Could not find entry address: " <<
+								 to_string<VA>(itr->ep, hex) << "; aborting\n";
+					return false;
+				}
 			}
 
+			cout << "Adding entry point: " << itr->name << std::endl;
 
-			bool ShouldVerify = true; // TODO
-
-			// will abort if verification fails
-			if(ShouldVerify && llvm::verifyModule(*M, &errs()))
+			if(itr->is_raw == true)
 			{
-				cerr << "Could not verify module!\n";
-				return -1;
+				if(module->is64Bit())
+					x86_64::addEntryPointDriverRaw(M, itr->name, ep);
+				else
+					x86::addEntryPointDriverRaw(M, itr->name, ep);
+			}
+			else
+			{
+				if(module->is64Bit())
+					x86_64::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv, itr->sign);
+				else
+					x86::addEntryPointDriver(M, itr->name, ep, itr->argc, itr->returns, outs(), itr->cconv);
 			}
 
-			//M->addModuleFlag(llvm::Module::Error, "Debug Info Version", DEBUG_METADATA_VERSION);
-			//M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
-
-			/*string                  errorInfo;
-			llvm::tool_output_file  Out(OutputFilename.c_str(),
-										errorInfo,
-										sys::fs::F_None);
-			WriteBitcodeToFile(M, Out.os());
-			Out.keep();*/
+		} // for vector<DriverEntry>
 
 
-			//string bitcode_data;
-			raw_string_ostream os(bitcode_data);
-			WriteBitcodeToFile(M, os);
-			return 1;
-		}
-		catch(std::exception &e)
+
+
+		bool EnablePostAnalysis = true; // TODO
+
+		if(EnablePostAnalysis)
 		{
-			cout << "error: " << endl << e.what() << endl;
-			return 0;
+			cout << "Doing post analysis passes...\n";
+			doPostAnalysis(module, M);
 		}
+		else
+		{
+			cout << "NOT doing post analysis passes.\n";
+		}
+
+
+		bool ShouldVerify = true; // TODO
+
+		// will abort if verification fails
+		if(ShouldVerify && llvm::verifyModule(*M, &errs()))
+		{
+			cerr << "Could not verify module!\n";
+			return false;
+		}
+
+		M->addModuleFlag(llvm::Module::Error, "Debug Info Version", (uint32_t)DEBUG_METADATA_VERSION);
+		M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
+
+		raw_string_ostream os(bitcode_data);
+		WriteBitcodeToFile(M, os);
 	}
-	else
+	catch(std::exception &e)
 	{
-		cout << "Failure to convert to LLVM module!" << endl;
-		return 0;
+		cout << "error: " << endl << e.what() << endl;
+		return false;
 	}
+
+	return true;
 }
 
+bool CFGToLLVM::ExecuteAndSave(std::string output_file)
+{
+	if(!Execute())
+		return false;
 
+	try
+	{
+		string error_info;
+		llvm::tool_output_file Out(output_file.c_str(), error_info, sys::fs::F_None);
+		Out.os() << bitcode_data;
+		Out.keep();
+	}
+	catch(std::exception &e)
+	{
+		cout << "error: " << endl << e.what() << endl;
+		return false;
+	}
+
+	return true;
+}

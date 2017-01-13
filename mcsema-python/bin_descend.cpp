@@ -1,7 +1,3 @@
-//
-// Created by florian on 23.11.16.
-//
-
 
 #include "llvm/ADT/Triple.h"
 #include "llvm/Support/TargetRegistry.h"
@@ -15,6 +11,7 @@
 #include "cfg_recover.h"
 #include <toLLVM.h>
 #include <raiseX86.h>
+#include <fstream>
 #include "../mc-sema/common/Defaults.h"
 
 #include <llvm/IR/Verifier.h>
@@ -25,8 +22,9 @@ using namespace std;
 using namespace boost;
 using namespace llvm;
 
-BinDescend::BinDescend()
+BinDescend::BinDescend(string input_file)
 {
+	this->input_file = input_file;
 	system_arch = "";
 	x86_target = 0;
 }
@@ -48,14 +46,14 @@ void BinDescend::SetSystemArch(string system_arch)
 
 }
 
-int BinDescend::Execute(string in_filename)
+bool BinDescend::Execute()
 {
 	//llvm::Triple *triple;
 
 	if(!x86_target)
 	{
 		outs() << "No target.\n";
-		return 0;
+		return false;
 	}
 
 	if(!system_arch.compare("x86-64"))
@@ -80,7 +78,7 @@ int BinDescend::Execute(string in_filename)
 	catch (LErr &l)
 	{
 		cerr << "Exception while parsing external map:\n" << l.what() << std::endl;
-		return -2;
+		return false;
 	}
 
 
@@ -98,17 +96,17 @@ int BinDescend::Execute(string in_filename)
 
 	try
 	{
-		exc = ExecutableContainer::open(in_filename, x86_target, prior_knowledge);
+		exc = ExecutableContainer::open(input_file, x86_target, prior_knowledge);
 	}
 	catch (LErr &l)
 	{
-		errs() << "Could not open: " << in_filename << ", reason: " << l.what() << "\n";
-		return -1;
+		errs() << "Could not open: " << input_file << ", reason: " << l.what() << "\n";
+		return false;
 	}
 	catch (...)
 	{
-		errs() << "Could not open: " << in_filename << "\n";
-		return -1;
+		errs() << "Could not open: " << input_file << "\n";
+		return false;
 	}
 
 
@@ -118,70 +116,67 @@ int BinDescend::Execute(string in_filename)
 	{
 		std::uint64_t file_ep;
 		// maybe this file format specifies an entry point?
-		if(false == exc->getEntryPoint(file_ep))
+		if(!exc->getEntryPoint(file_ep))
 		{
 			//We don't know which entry point to use!
-			llvm::errs() << "Could not identify an entry point for: [" << in_filename << "].\n";
+			llvm::errs() << "Could not identify an entry point for: [" << input_file << "].\n";
 			llvm::errs() << "You must manually specify at least one entry point. Use either -entry-symbol or -e.\n";
-			return -1;
+			return false;
 		}
 	}
 
 
-	if(exc->is_open())
+	if(!exc->is_open())
 	{
-		//convert to native CFG
-		//NativeModulePtr m;
-		try
-		{
-			module = MakeNativeModule(exc, funcs);
-		}
-		catch(LErr &l)
-		{
-			outs() << "Failure to make module: " << l.what() << "\n";
-			return -1;
-		}
-
-		//string outS = dumpProtoBuf(module);
-
-		outs() << "Finished.\n";
-
-		/*if(m)
-		{
-			//write out to protobuf
-			if(outS.size() > 0) {
-				filesystem::path p;
-				if (OutputFilename == "") {
-					//write out to file, but, make the file name
-					//the same as the input file name with the ext
-					//removed and replaced with .cfg
-					p = filesystem::path(string(InputFilename));
-					p = p.replace_extension(".cfg");
-				}
-				else {
-					p = filesystem::path(string(OutputFilename));
-				}
-
-				FILE  *out = fopen(p.string().c_str(), "wb");
-				if(out) {
-					fwrite(outS.c_str(), 1, outS.size(), out);
-					fclose(out);
-				} else {
-					//report error
-					outs() << "Could not open " << p.string() << "\n";
-				}
-			}
-		}*/
-
+		outs() << "Could not open executable module " << input_file << "\n";
+		return false;
 	}
-	else
+
+	//convert to native CFG
+	//NativeModulePtr m;
+	try
 	{
-		outs() << "Could not open executable module " << in_filename << "\n";
+		module = MakeNativeModule(exc, funcs);
+	}
+	catch(LErr &l)
+	{
+		outs() << "Failure to make module: " << l.what() << "\n";
+		return false;
 	}
 
-	return 0;
+	outs() << "Finished.\n";
+
+
+	return true;
 }
 
+
+bool BinDescend::ExecuteAndSave(string output_file)
+{
+	if(!Execute())
+		return false;
+
+	if(!module)
+		return false;
+
+	//write out to protobuf
+	string outS = dumpProtoBuf(module);
+
+	if(outS.size() == 0)
+		return false;
+
+	FILE *out = fopen(output_file.c_str(), "wb");
+	if(!out)
+	{
+		outs() << "Could not open " << output_file << "\n";
+		return false;
+	}
+
+	fwrite(outS.c_str(), 1, outS.size(), out);
+	fclose(out);
+
+	return true;
+}
 
 
 NativeModulePtr BinDescend::MakeNativeModule(ExecutableContainer *exc, ExternalFunctionMap &funcs)
@@ -242,7 +237,7 @@ NativeModulePtr BinDescend::MakeNativeModule(ExecutableContainer *exc, ExternalF
 		}
 	}
 
-	if(ignore_native_entry_points == false)
+	if(!ignore_native_entry_points)
 	{
 		//get entry points from the file too
 		list<pair<string, VA>> tmp;
