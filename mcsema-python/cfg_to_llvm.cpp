@@ -11,6 +11,7 @@
 #include <toModule.h>
 #include <raiseX86.h>
 #include <llvm/IR/Verifier.h>
+#include <peToCFG.h>
 
 using namespace std;
 using namespace boost;
@@ -134,22 +135,41 @@ static bool haveDriverFor(const std::vector<DriverEntry> &drvs, const std::strin
 }
 
 
-int CFGToLLVM::Execute()
+
+
+CFGToLLVM::CFGToLLVM(std::string target_triple, boost::python::object input)
+{
+	this->target_triple = target_triple;
+	LookupTarget();
+
+	python::extract<NativeModulePtr> module_extract(input);
+	if(module_extract.check())
+		this->module = module_extract();
+	else
+	{
+		std::string cfg_file = python::extract<std::string>(input);
+		this->module = readModule(cfg_file, ProtoBuff, list<VA>(), x86_target);
+
+	}
+}
+
+void CFGToLLVM::LookupTarget()
 {
 	std::string errstr;
 	cout << "Looking up target..." << endl;
-	const Target *x86_target = TargetRegistry::lookupTarget(target_triple, errstr);
+	x86_target = TargetRegistry::lookupTarget(target_triple, errstr);
 
 	if(x86_target == nullptr)
 	{
 		std::cerr << "Could not find target triple: " << target_triple << "\n";
 		std::cerr << "Error: " << errstr << "\n";
-		return 0;
+		//return 0;
 	}
+}
 
 
-
-
+int CFGToLLVM::Execute()
+{
 	vector<DriverEntry> drivers;
 
 	for(unsigned int i=0; i<python::len(driver_entries); i++)

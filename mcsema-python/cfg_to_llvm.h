@@ -16,7 +16,7 @@ class CFGToLLVM
 {
 	private:
 		std::string target_triple;
-		//const llvm::Target *x86_target;
+		const llvm::Target *x86_target;
 
 		NativeModulePtr module;
 
@@ -24,7 +24,12 @@ class CFGToLLVM
 
 		std::string bitcode_data;
 
+		void LookupTarget();
+
 	public:
+		CFGToLLVM(std::string target_triple, boost::python::object input);
+		//CFGToLLVM(std::string target_triple, std::string cfg_file);
+
 		int Execute();
 
 		const std::string GetTargetTriple() const			{ return target_triple; }

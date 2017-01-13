@@ -1,3 +1,5 @@
 *.ll
 *.o
 *.bc
+*.cfg
+*.idb

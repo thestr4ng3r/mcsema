@@ -6,22 +6,25 @@ call("clang -O0 -m32 -c -o demo_test.o demo_test.c", shell=True)
 
 mcsema.initialize()
 
-lifter = mcsema.LLVMLifter()
-
-lifter.arch = "x86"
-lifter.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-lifter.entry_symbols = ["start"]
-
 print("-------")
 print("bin_descend")
 print("-------")
-lifter.bin_descend("demo_test.o")
+
+bin_descend = mcsema.BinDescend()
+bin_descend.arch = "x86"
+bin_descend.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+bin_descend.entry_symbols = ["start"]
+bin_descend.execute("demo_test.o")
 
 print("")
 print("")
 print("-------")
 print("cfg_to_bc")
 print("-------")
+
+cfg_to_llvm = mcsema.CFGToLLVM()
+cfg_to_llvm.target_triple = bin_descend.target_triple
+cfg_to_llvm.native_module = bin_descend.native_module
 
 driver = mcsema.DriverEntry()
 driver.is_raw = False
@@ -32,10 +35,10 @@ driver.sym = "start"
 driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
-lifter.drivers = [driver]
-lifter.cfg_to_bc()
+cfg_to_llvm.drivers = [driver]
+cfg_to_llvm.execute()
 
-bitcode = lifter.bitcode
+bitcode = cfg_to_llvm.bitcode
 
 
 f = open("demo_test.bc", "wb")

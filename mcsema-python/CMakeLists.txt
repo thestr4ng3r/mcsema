@@ -103,6 +103,12 @@ set(MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE
 link_directories(${MCSEMA_PYTHON_LIBRARY_DIRS})
 
 
+add_custom_target(
+		cfg_ida_py ALL
+		${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/cfg_ida.py ${CMAKE_CURRENT_BINARY_DIR}/cfg_ida.py
+		SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/cfg_ida.py
+)
+
 if(MCSEMA_PYTHON_BUILD_CMAKE)
 	add_library(mcsema-python SHARED ${MCSEMA_PYTHON_SRC})
 	set_target_properties(mcsema-python PROPERTIES
@@ -112,8 +118,12 @@ if(MCSEMA_PYTHON_BUILD_CMAKE)
 	target_link_libraries(mcsema-python ${MCSEMA_PYTHON_LIBRARIES})
 	target_link_libraries(mcsema-python "-Wl,--whole-archive" ${MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
 
-	add_dependencies(mcsema-python binary_common peToCFG cfgToLLVM LLVMX86CodeGen)
+	add_dependencies(mcsema-python binary_common peToCFG cfgToLLVM LLVMX86CodeGen cfg_ida_py)
 endif(MCSEMA_PYTHON_BUILD_CMAKE)
+
+
+
+
 
 
 

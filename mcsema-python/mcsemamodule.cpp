@@ -45,7 +45,7 @@ BOOST_PYTHON_MODULE(mcsema)
 			.def_readwrite("ep", &DriverEntry::ep)
 			.def_readwrite("cconv", &DriverEntry::cconv);
 
-	class_<CFGToLLVM>("CFGToLLVM", init<>())
+	class_<CFGToLLVM>("CFGToLLVM", init<std::string, object>())
 			.def("execute", &CFGToLLVM::Execute)
 			.add_property("native_module", &CFGToLLVM::GetNativeModule, &CFGToLLVM::SetNativeModule)
 			.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)

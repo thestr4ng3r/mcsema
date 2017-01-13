@@ -1,5 +1,6 @@
 
 import mcsema
+import cfg_ida
 import llvmlite.binding as llvm
 from subprocess import call
 from ctypes import CFUNCTYPE, c_int, c_long, c_double
@@ -8,16 +9,28 @@ call("clang -O0 -m32 -c -o demo_test.o demo_test.c", shell=True)
 
 mcsema.initialize()
 
-lifter = mcsema.LLVMLifter()
-
-lifter.arch = "x86"
-lifter.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-lifter.entry_symbols = ["switch_func"]
 
 print("-------")
 print("bin_descend")
 print("-------")
-lifter.bin_descend("demo_test.o")
+
+#bin_descend = mcsema.BinDescend()
+#bin_descend.arch = "x86"
+#bin_descend.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+#bin_descend.entry_symbols = ["switch_func"]
+#bin_descend.execute("demo_test.o")
+
+ida_exec = ""
+
+cfg_gen = cfg_ida.IDACFGGenerator(ida_exec, "../../../mc-sema/bin_descend/get_cfg.py", "demo_test.o")
+cfg_gen.debug_mode = True
+cfg_gen.batch_mode = True
+cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+cfg_gen.entry_symbols = ["switch_func"]
+
+cfg_gen.execute("demo_test.cfg")
+
+
 
 print("")
 print("")
@@ -25,19 +38,20 @@ print("-------")
 print("cfg_to_bc")
 print("-------")
 
+cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
+
 driver = mcsema.DriverEntry()
-driver.is_raw = False
-driver.argc = 1
+driver.is_raw = True
+driver.argc = 0
 driver.returns = True
 driver.name = "demo_entry"
 driver.sym = "switch_func"
 driver.ep = 0
 driver.cconv = mcsema.calling_convention.caller_cleanup
 
-lifter.drivers = [driver]
-lifter.cfg_to_bc()
-
-bitcode = lifter.bitcode
+cfg_to_llvm.drivers = [driver]
+cfg_to_llvm.execute()
+bitcode = cfg_to_llvm.bitcode
 
 
 f = open("demo_test.bc", "wb")
