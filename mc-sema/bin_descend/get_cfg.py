@@ -152,6 +152,9 @@ def readQword(ea):
     qword = struct.unpack("<Q", bytestr)[0]
     return qword
 
+def isElf():
+    return idc.GetLongPrm(idc.INF_FILETYPE) == idc.FT_ELF
+
 def isLinkedElf():
     return idc.GetLongPrm(idc.INF_FILETYPE) == idc.FT_ELF and \
         idc.BeginEA() not in [0xffffffffL, 0xffffffffffffffffL]
@@ -225,6 +228,7 @@ def isJmpTable(ea):
 def addFunction(M, ep):
     F = M.internal_funcs.add()
     F.entry_address = ep
+    F.symbol_name = getFunctionName(ep)
     return F
 
 def entryPointHandler(M, ep, name, args_from_stddef=False):
@@ -406,13 +410,16 @@ def handleExternalRef(fn):
         if fn.endswith("_0"):
             fn = fn[:-2]
 
+        # name could have been modified by the above tests
+        in_a_map = fn in EMAP or fn in EMAP_DATA
+
         if fn.startswith("_") and not in_a_map:
             fn = fn[1:]
 
         if fn.startswith("@") and not in_a_map:
             fn = fn[1:]
 
-        if '@' in fn:
+        if isElf() and '@' in fn:
             fn = fn[:fn.find('@')]
 
     fixfn = fixExternalName(fn)
@@ -614,16 +621,34 @@ def manualRelocOffset(I, inst, dref):
     if insn_t is None:
         return None
 
-    for op in insn_t.Operands:
+    # check for immediates first
+    # TODO(artem) special case things like 0x0 that see in COFF objects?
+    for (idx, op) in enumerate(insn_t.Operands):
         
         if op.value == dref:
+            # IDA will do stupid things like say an immediate operand is a memory operand
+            # if it references memory. Try to work around this issue
+
+            # its the first operand (probably a destination) and IDA thinks its o_mem
+            # in this case, IDA is probaly right; don't mark it as an immediate
+            if idx == 0 and op.type == o_mem:
+                continue
+
+            if op.type in [idaapi.o_imm, idaapi.o_mem, idaapi.o_near, idaapi.o_far]:
+                # we aren't sure what we have, but it use a register... probably not
+                # an immediate but instead a memory reference
+                if op.reg > 0:
+                    I.mem_reloc_offset = op.offb
+                    return "MEM"
+
+                I.imm_reloc_offset = op.offb
+                return "IMM"
+
+    for op in insn_t.Operands:
+
             if op.type in [idaapi.o_displ, idaapi.o_phrase]:
                 I.mem_reloc_offset = op.offb
                 return "MEM"
-
-            if op.type in [idaapi.o_imm, idaapi.o_mem, idaapi.o_near, idaapi.o_far]:
-                I.imm_reloc_offset = op.offb
-                return "IMM"
 
     return "MEM"
 
@@ -880,10 +905,21 @@ def parseDefsFile(df):
             emap_data[symname] = int(dsize)
         else:
             fname = args = conv = ret = sign = None
-            if len(l.split()) == 4:
-                (fname, args, conv, ret) = l.split()
-            elif len(l.split()) == 5:
-                (fname, args, conv, ret, sign) = l.split()
+            line_args = l.split()
+            if len(line_args) == 2:
+                fname, conv = line_args
+                if conv == "MCSEMA":
+                    DEBUG("Found mcsema internal function: {}\n".format(fname))
+                    realconv = CFG_pb2.ExternalFunction.McsemaCall
+                    emap[fname] = (1, realconv, 'N', None)
+                    continue
+                else:
+                    raise Exception("Unknown calling convention:"+str(conv))
+
+            if len(line_args) == 4:
+                (fname, args, conv, ret) = line_args
+            elif len(line_args) == 5:
+                (fname, args, conv, ret, sign) = line_args
 
             if conv == "C":
                 realconv = CFG_pb2.ExternalFunction.CallerCleanup

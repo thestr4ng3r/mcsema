@@ -2,7 +2,9 @@
 #include <string.h>
 #include <stdio.h>
 
-extern void demo3_entry(const char *, const char*);
+#define _CRT_SECURE_NO_WARNINGS
+
+extern void demo3(const char *, const char*);
 
 int main(int argc, char *argv[]) {
     size_t  len = sizeof("/first/test/path");
@@ -12,7 +14,7 @@ int main(int argc, char *argv[]) {
     memset(b, 0, len);
     strcpy(a, "/first/test/path");
 
-    demo3_entry(a, b);
+    demo3(a, b);
 
     printf("%s -> %s\n", a, b);
 

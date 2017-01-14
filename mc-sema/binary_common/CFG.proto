@@ -60,6 +60,7 @@ message Block {
 message Function {
     repeated    Block   blocks = 1;
     required    int64   entry_address = 2;
+    optional    string  symbol_name = 3;
 }
 
 message ExternalFunction {
@@ -67,6 +68,7 @@ message ExternalFunction {
       CallerCleanup = 0;
       CalleeCleanup = 1;
       FastCall      = 2;
+      McsemaCall    = 3;
     }
 
     required    string            symbol_name = 1;

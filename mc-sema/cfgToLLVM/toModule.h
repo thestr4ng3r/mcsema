@@ -28,18 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #ifndef _TO_MODULE_H
 #define _TO_MODULE_H
+
+#include <set>
+
 #include "Externals.h"
 
 //translate a NativeModule into an LLVM Module
-bool natModToModule(NativeModulePtr, llvm::Module *, llvm::raw_ostream &);
-namespace x86 {
-bool addEntryPointDriver(llvm::Module *, std::string, VA, int, bool, llvm::raw_ostream &, ExternalCodeRef::CallingConvention cconv);
-bool addEntryPointDriverRaw(llvm::Module *M, std::string name, VA entry);
-}
-
-namespace x86_64 {
-bool addEntryPointDriver(llvm::Module *, std::string, VA, int, bool, llvm::raw_ostream &, ExternalCodeRef::CallingConvention cconv, std::string funcSign);
-bool addEntryPointDriverRaw(llvm::Module *M, std::string name, VA entry);
-}
-bool doPostAnalysis(NativeModulePtr N, llvm::Module *M);
+void renameLiftedFunctions(NativeModulePtr natMod, llvm::Module *M,
+                           const std::set<VA> &entry_point_pcs);
+bool liftNativeCodeIntoModule(NativeModulePtr, llvm::Module *);
 #endif

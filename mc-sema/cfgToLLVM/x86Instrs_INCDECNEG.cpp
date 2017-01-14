@@ -73,7 +73,7 @@ static InstTransResult doNegR(InstPtr ip,  BasicBlock      *&b,
 {
     NASSERT(dst.isReg());
 	llvm::Module *M = b->getParent()->getParent();
-	uint32_t regWidth = getPointerSize(M);
+	uint32_t regWidth = ArchPointerSize(M);
 
     // Cache a full width read of the register.
     Value *reg_f_v = (regWidth == x86::REG_SIZE)?
@@ -142,36 +142,6 @@ static Value *doDecV(InstPtr ip, BasicBlock *&b, Value *val) {
 
     return result;
 }
-
-//template <int width>
-//static InstTransResult doDecR(InstPtr ip,  BasicBlock      *&b,
-//                        const MCOperand &dst)
-//{
-//    NASSERT(dst.isReg());
-//	llvm::Module *M = b->getParent()->getParent();
-//	uint32_t regWidth = getPointerSize(M);
-//	
-//    // Cache a full width read of the register.
-//    Value *reg_f_v = (regWidth == x86::REG_SIZE? 
-//						x86::R_READ<32>(b, dst.getReg()) :
-//						x86_64::R_READ<64>(b, dst.getReg()));
-//    
-//    // Do a read of the register.
-//    Value *reg_v = R_READ<width>(b, dst.getReg());
-//
-//    Value *result = doDecV<width>(ip, b, reg_v);
-//
-//    // Write it back out.
-//    R_WRITE<width>(b, dst.getReg(), result);
-//
-//    // Update AF with the result from the register.
-//    if(regWidth == x86::REG_SIZE)
-//		WriteAF2<32>(b, reg_f_v, x86::R_READ<32>(b, dst.getReg()), CONST_V<32>(b, 1));
-//	else
-//		WriteAF2<64>(b, reg_f_v, x86_64::R_READ<64>(b, dst.getReg()), CONST_V<64>(b, 1));
-//
-//    return ContinueBlock;
-//}
 
 template <int width, int regWidth>
 static InstTransResult doDecR(InstPtr ip,  BasicBlock      *&b,
@@ -242,6 +212,9 @@ GENERIC_TRANSLATION_REF(DEC8m,
 GENERIC_TRANSLATION_REF(DEC64_32m, 
 	(doDecM<32,64>(ip, block, ADDR_NOREF(0))) ,
 	(doDecM<32,64>(ip, block, MEM_REFERENCE(0))) )
+GENERIC_TRANSLATION_REF(DEC64_16m, 
+	(doDecM<16,64>(ip, block, ADDR_NOREF(0))) ,
+	(doDecM<16,64>(ip, block, MEM_REFERENCE(0))) )
 GENERIC_TRANSLATION_REF(INC16m, 
 	doIncM<16>(ip, block, ADDR_NOREF(0)),
 	doIncM<16>(ip, block, MEM_REFERENCE(0)))
@@ -316,6 +289,7 @@ void INCDECNEG_populateDispatchMap(DispatchMap &m) {
     m[X86::DEC64_16r] = translate_DEC64_16r;
     m[X86::DEC64_32r] = translate_DEC64_32r;
     m[X86::DEC64_32m] = translate_DEC64_32m;
+    m[X86::DEC64_16m] = translate_DEC64_16m;
     m[X86::DEC64r] = translate_DEC64r;
 
     m[X86::INC16m] = translate_INC16m;

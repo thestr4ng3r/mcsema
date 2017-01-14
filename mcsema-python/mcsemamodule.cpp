@@ -36,7 +36,7 @@ BOOST_PYTHON_MODULE(mcsema)
 			.value("x86_64_sysv", ExternalCodeRef::X86_64_SysV)
 			.value("x86_64_win64", ExternalCodeRef::X86_64_Win64);
 
-	class_<DriverEntry>("DriverEntry")
+	/*class_<DriverEntry>("DriverEntry")
 			.def_readwrite("is_raw", &DriverEntry::is_raw)
 			.def_readwrite("returns", &DriverEntry::returns)
 			.def_readwrite("argc", &DriverEntry::argc)
@@ -44,13 +44,13 @@ BOOST_PYTHON_MODULE(mcsema)
 			.def_readwrite("sym", &DriverEntry::sym)
 			.def_readwrite("sign", &DriverEntry::sign)
 			.def_readwrite("ep", &DriverEntry::ep)
-			.def_readwrite("cconv", &DriverEntry::cconv);
+			.def_readwrite("cconv", &DriverEntry::cconv);*/
 
 	class_<CFGToLLVM>("CFGToLLVM", init<std::string, object>())
 			.def("execute", &CFGToLLVM::Execute)
 			.def("execute", &CFGToLLVM::ExecuteAndSave)
 			.add_property("native_module", &CFGToLLVM::GetNativeModule, &CFGToLLVM::SetNativeModule)
 			.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)
-			.add_property("drivers", &CFGToLLVM::GetDrivers, &CFGToLLVM::SetDrivers)
+			.add_property("entry_points", &CFGToLLVM::GetEntryPoints, &CFGToLLVM::SetEntryPoints)
 			.add_property("bitcode", &CFGToLLVM::GetBitcode);
 }

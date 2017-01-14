@@ -23,35 +23,32 @@ endif(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} GREATER 2.8)
 get_target_property(BIN_DESCEND_EXECUTABLE bin_descend LOCATION)
 get_filename_component(BIN_DESCEND_PATH ${BIN_DESCEND_EXECUTABLE} PATH)
 
-add_custom_target(
-    bin_descend_wrapper ALL
- ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin_descend_wrapper.py ${BIN_DESCEND_PATH}/bin_descend_wrapper.py
- SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin_descend_wrapper.py
- WORKING_DIRECTORY ${BIN_DESCEND_PATH}
- DEPENDS bin_descend
-)
 
-add_custom_target(
-    get_cfg_py ALL
- ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/get_cfg.py ${BIN_DESCEND_PATH}/get_cfg.py
- COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/CFG_pb2.py ${BIN_DESCEND_PATH}/CFG_pb2.py
- SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/get_cfg.py ${CMAKE_CURRENT_SOURCE_DIR}/CFG_pb2.py
- WORKING_DIRECTORY ${BIN_DESCEND_PATH}
- DEPENDS bin_descend
-)
 
-add_custom_target(
-    fake_imports_py ALL
- ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fake_imports.py ${BIN_DESCEND_PATH}/fake_imports.py
- SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/fake_imports.py
- WORKING_DIRECTORY ${BIN_DESCEND_PATH}
- DEPENDS bin_descend
-)
 
-add_custom_target(
-    imports_for_dll_py ALL
-    ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/imports_for_dll.py ${BIN_DESCEND_PATH}/imports_for_dll.py
-    SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/imports_for_dll.py
-    WORKING_DIRECTORY ${BIN_DESCEND_PATH}
-    DEPENDS bin_descend
-    )
+
+#add_custom_target(
+#    bin_descend_wrapper ALL
+# ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/bin_descend_wrapper.py ${BIN_DESCEND_PATH}/bin_descend_wrapper.py
+# SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/bin_descend_wrapper.py
+# WORKING_DIRECTORY ${BIN_DESCEND_PATH}
+# DEPENDS bin_descend
+#)
+
+#add_custom_target(get_cfg_py ALL
+#  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/get_cfg.py ${BIN_DESCEND_PATH}/#get_cfg.py
+#  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/CFG_pb2.py #${BIN_DESCEND_PATH}/CFG_pb2.py
+#  SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/get_cfg.py ${CMAKE_CURRENT_SOURCE_DIR}/CFG_pb2.py
+#  WORKING_DIRECTORY ${BIN_DESCEND_PATH})
+#
+#add_custom_target(fake_imports_py ALL
+#  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/fake_imports.py ${BIN_DESCEND_PATH}#/fake_imports.py
+#  SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/fake_imports.py
+#  WORKING_DIRECTORY ${BIN_DESCEND_PATH}
+#
+#add_custom_target(imports_for_dll_py ALL
+#  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/imports_for_dll.py #${BIN_DESCEND_PATH}/imports_for_dll.py
+#  SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/imports_for_dll.py
+#  WORKING_DIRECTORY ${BIN_DESCEND_PATH}
+#  )
+#

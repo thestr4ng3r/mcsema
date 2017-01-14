@@ -5,7 +5,6 @@ if(WIN32)
 SET(CMAKE_EXE_LINKER_FLAGS "/LARGEADDRESSAWARE ${CMAKE_EXE_LINKER_FLAGS}")
 endif(WIN32)
 
-
 find_package(Boost REQUIRED COMPONENTS filesystem date_time program_options system thread)
 include_directories(${Boost_INCLUDE_DIRS})
 

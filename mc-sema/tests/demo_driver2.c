@@ -1,19 +1,23 @@
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "../common/RegisterState.h"
 
-extern void demo2_entry(RegState *);
+#ifdef _WIN32
+extern void sub_1(RegState *);
+void sub_8000001(RegState *r) { sub_1(r); }
+#else
+extern void sub_8000001(RegState *);
+#endif
 
 int doDemo2(int k) {
     RegState            rState = {0};
     unsigned long   stack[4096*10];
 
     //set up the stack 
-    rState.ESP = (unsigned long) &stack[4096*9];
+    rState.ESP = (uint32_t) &stack[4096*9];
     rState.EAX = k;
 
-    demo2_entry(&rState);
+    sub_8000001(&rState);
 
     return rState.EAX;
 }

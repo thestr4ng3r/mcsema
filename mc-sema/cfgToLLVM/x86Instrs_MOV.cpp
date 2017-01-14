@@ -35,7 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "JumpTables.h"
 #include "Externals.h"
 #include "ArchOps.h"
-#include "win64ArchOps.h"
 #include "llvm/Support/Debug.h"
 
 #define NASSERT(cond) TASSERT(cond, "")
@@ -333,7 +332,7 @@ static InstTransResult translate_MOV32mi(NativeModulePtr natM, BasicBlock *&bloc
     Module *M = F->getParent();
 
     if( ip->has_code_ref() ) {
-        Value *addrInt = IMM_AS_DATA_REF<32>(block, natM, ip);
+        Value *addrInt = IMM_AS_DATA_REF(block, natM, ip);
         if( ip->has_mem_reference) {
             ret = doMIMovV<32>(ip, block, MEM_REFERENCE(0), addrInt);
         } else {
@@ -349,10 +348,10 @@ static InstTransResult translate_MOV32mi(NativeModulePtr natM, BasicBlock *&bloc
                 // * archGetImageBase is defined
                 // * we are on win64
 
-                data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
                 data_v = doSubtractImageBase<32>(data_v, block);
             } else {
-                data_v = IMM_AS_DATA_REF<32>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
             }
             doMIMovV<32>(ip,  block, MEM_REFERENCE(0), data_v);
         } else if (ip->has_mem_reference) {
@@ -364,10 +363,10 @@ static InstTransResult translate_MOV32mi(NativeModulePtr natM, BasicBlock *&bloc
                 // * archGetImageBase is defined
                 // * we are on win64
 
-                data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
                 data_v = doSubtractImageBase<32>(data_v, block);
             } else {
-                data_v = IMM_AS_DATA_REF<32>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
             }
 
             doMIMovV<32>(ip,  block, ADDR_NOREF(0), data_v);
@@ -386,7 +385,7 @@ static InstTransResult translate_MOV64mi32(NativeModulePtr natM, BasicBlock *&bl
     Module *M = F->getParent();
 
     if( ip->has_code_ref() ) {
-        Value *addrInt = IMM_AS_DATA_REF<64>(block, natM, ip);
+        Value *addrInt = IMM_AS_DATA_REF(block, natM, ip);
         if (ip->has_mem_reference) {
             ret = doMIMovV<64>(ip, block, MEM_REFERENCE(0), addrInt);
         } else {
@@ -394,14 +393,14 @@ static InstTransResult translate_MOV64mi32(NativeModulePtr natM, BasicBlock *&bl
         }
     } else {
         if(ip->has_mem_reference && ip->has_imm_reference) {
-            Value *data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+            Value *data_v = IMM_AS_DATA_REF(block, natM, ip);
             if(shouldSubtractImageBase(M)) {
                 data_v = doSubtractImageBase<64>(data_v, block);
             }
             doMIMovV<64>(ip,  block, MEM_REFERENCE(0), data_v);
 
         } else if (ip->has_imm_reference) {
-            Value *data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+            Value *data_v = IMM_AS_DATA_REF(block, natM, ip);
             if(shouldSubtractImageBase(M)) {
                 data_v = doSubtractImageBase<64>(data_v, block);
             }
@@ -513,7 +512,7 @@ static InstTransResult translate_MOV32ri(NativeModulePtr natM, BasicBlock *& blo
     Module *M = F->getParent();
 
     if( ip->has_code_ref() ) {
-        Value *addrInt = IMM_AS_DATA_REF<32>(block, natM, ip);
+        Value *addrInt = IMM_AS_DATA_REF(block, natM, ip);
         ret = doRIMovV<32>(ip, block, addrInt, OP(0) );
     } else {
         if( ip->has_imm_reference) {
@@ -523,10 +522,10 @@ static InstTransResult translate_MOV32ri(NativeModulePtr natM, BasicBlock *& blo
                 // * archGetImageBase is defined
                 // * we are on win64
 
-                data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
                 data_v = doSubtractImageBase<32>(data_v, block);
             } else {
-                data_v = IMM_AS_DATA_REF<32>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
             }
 
             ret = doRIMovV<32>(ip, block, data_v, OP(0) );
@@ -544,11 +543,11 @@ static InstTransResult translate_MOV64ri(NativeModulePtr natM, BasicBlock *& blo
     Module *M = F->getParent();
 
     if( ip->has_code_ref() ) {
-        Value *addrInt = IMM_AS_DATA_REF<64>(block, natM, ip);
+        Value *addrInt = IMM_AS_DATA_REF(block, natM, ip);
         ret = doRIMovV<64>(ip, block, addrInt, OP(0) );
     }
     else if( ip->has_imm_reference ) {
-        Value *data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+        Value *data_v = IMM_AS_DATA_REF(block, natM, ip);
         if(shouldSubtractImageBase(M)) {
             // if we're here, then
             // * archGetImageBase is defined
@@ -564,6 +563,20 @@ static InstTransResult translate_MOV64ri(NativeModulePtr natM, BasicBlock *& blo
     return ret ;
 }
 
+template <int width>
+int GET_XAX() {
+  if (64 == width) {
+    return X86::RAX;
+  } else if (32 == width) {
+    return X86::EAX;
+  } else if (16 == width) {
+    return X86::AX;
+  } else if (8 == width) {
+    return X86::AL;
+  } else {
+    throw TErr(__LINE__, __FILE__, "Unknown width!");
+  }
+}
 
 //write to memory
 template <int width>
@@ -589,17 +602,16 @@ static InstTransResult translate_MOVao (NativeModulePtr natM, BasicBlock *& bloc
             // * archGetImageBase is defined
             // * we are on win64
            
-            data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+            data_v = IMM_AS_DATA_REF(block, natM, ip);
             data_v = doSubtractImageBase<32>(data_v, block);
         } else {
-            data_v = IMM_AS_DATA_REF<width>(block, natM, ip);
+            data_v = IMM_AS_DATA_REF(block, natM, ip);
         }
-
         ret = doMRMov<width>(ip, block, data_v,
-                MCOperand::CreateReg(X86::EAX) );
+                MCOperand::CreateReg(GET_XAX<width>()) );
     } else {
         Value *addrv = CONST_V<width>(block, OP(0).getImm());
-        ret = doMRMov<width>(ip, block, addrv, MCOperand::CreateReg(X86::EAX)) ;
+        ret = doMRMov<width>(ip, block, addrv, MCOperand::CreateReg(GET_XAX<width>())) ;
     }
     return ret ;
 }
@@ -611,7 +623,7 @@ static InstTransResult translate_MOVoa (NativeModulePtr natM, BasicBlock *& bloc
     Function *F = block->getParent();
     Module *M = F->getParent();
 
-    unsigned eaxReg = width == 32 ? X86::EAX : X86::RAX;
+    unsigned eaxReg = GET_XAX<width>();
 
     // loading functions only available if its a 32-bit offset
     if( ip->has_external_ref() && width == 32) {
@@ -630,7 +642,7 @@ static InstTransResult translate_MOVoa (NativeModulePtr natM, BasicBlock *& bloc
     }
 
     if( ip->has_code_ref() ) {
-        Value *addrInt = IMM_AS_DATA_REF<width>(block, natM, ip);
+        Value *addrInt = IMM_AS_DATA_REF(block, natM, ip);
         ret = doRMMov<width>(ip, block, addrInt, MCOperand::CreateReg(eaxReg)) ;
     } else {
         if( ip->has_imm_reference ) {
@@ -640,10 +652,10 @@ static InstTransResult translate_MOVoa (NativeModulePtr natM, BasicBlock *& bloc
                 // * archGetImageBase is defined
                 // * we are on win64
 
-                data_v = IMM_AS_DATA_REF<64>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
                 data_v = doSubtractImageBase<32>(data_v, block);
             } else {
-                data_v = IMM_AS_DATA_REF<width>(block, natM, ip);
+                data_v = IMM_AS_DATA_REF(block, natM, ip);
             }
             ret = doRMMov<width>(ip, block,
                     data_v,

@@ -20,7 +20,7 @@ class CFGToLLVM
 
 		NativeModulePtr module;
 
-		boost::python::list driver_entries;
+		boost::python::list entry_points;
 
 		std::string bitcode_data;
 
@@ -38,25 +38,12 @@ class CFGToLLVM
 		NativeModulePtr GetNativeModule() const				{ return module; }
 		void SetNativeModule(NativeModulePtr module)		{ this->module = module; }
 
-		boost::python::list GetDrivers() const				{ return driver_entries; }
-		void SetDrivers(boost::python::list drivers)		{ this->driver_entries = drivers; }
+		boost::python::list GetEntryPoints() const			{ return entry_points; }
+		void SetEntryPoints(boost::python::list l)			{ this->entry_points = l; }
 
 
 
 		std::string GetBitcode() const	 						{ return bitcode_data; }
-};
-
-
-struct DriverEntry
-{
-	bool is_raw;
-	bool returns;
-	int  argc;
-	std::string name;
-	std::string sym;
-	std::string sign;
-	VA ep;
-	ExternalCodeRef::CallingConvention cconv;
 };
 
 #endif

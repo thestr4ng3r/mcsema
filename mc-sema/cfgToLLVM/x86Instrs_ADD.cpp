@@ -130,17 +130,17 @@ static InstTransResult doAddRI(InstPtr ip, BasicBlock *&b,
     TASSERT(src2.isImm(), "");
     TASSERT(dst.isReg(), "");
 
-	llvm::Module *M = b->getParent()->getParent();
+    llvm::Module *M = b->getParent()->getParent();
 
     Value *srcReg = NULL;
 
     // Read from src1.
-	srcReg = R_READ<width>(b, src1.getReg());
+    srcReg = R_READ<width>(b, src1.getReg());
     
     // Constant.
     Value *constPart = CONST_V<width>(b, src2.getImm());
 
-	R_WRITE<width>(b, dst.getReg(), doAddVV<width>(ip, b, srcReg, constPart));
+    R_WRITE<width>(b, dst.getReg(), doAddVV<width>(ip, b, srcReg, constPart));
 
     return ContinueBlock;
 }
@@ -161,11 +161,11 @@ static InstTransResult doAddRM(InstPtr ip, BasicBlock *&b,
     // Read from o1.
     Value *v2 = R_READ<width>(b, o1.getReg());
 
-	// Do add.
-	Value *res = doAddVV<width>(ip, b, v1, v2);
+    // Do add.
+    Value *res = doAddVV<width>(ip, b, v1, v2);
 
-	// Write to o2.
-	R_WRITE<width>(b, o2.getReg(), res);
+    // Write to o2.
+    R_WRITE<width>(b, o2.getReg(), res);
 
     return ContinueBlock;
 }
@@ -183,13 +183,13 @@ static InstTransResult doAddRV(InstPtr ip, BasicBlock *&b,
     llvm::errs() << "Doing AddRV at: " << to_string<VA>(ip->get_loc(), hex) << "\n";
 
     // Read from o1.
-	Value *v2 = R_READ<width>(b, o1.getReg());
+    Value *v2 = R_READ<width>(b, o1.getReg());
 
-	// Do add.
-	Value *res = doAddVV<width>(ip, b, addr, v2);
+    // Do add.
+    Value *res = doAddVV<width>(ip, b, addr, v2);
 
-	// Write to o2.
-	R_WRITE<width>(b, o2.getReg(), res);
+    // Write to o2.
+    R_WRITE<width>(b, o2.getReg(), res);
 
     return ContinueBlock;
 }
@@ -269,13 +269,13 @@ static InstTransResult doAdcRV(InstPtr ip, BasicBlock *&b,
     TASSERT(addr != NULL, "");
 
     // Read from o1.
-	Value *v2 = R_READ<width>(b, o1.getReg());
+    Value *v2 = R_READ<width>(b, o1.getReg());
 
-	// Do add.
-	Value *res = doAdcVV<width>(ip, b, addr, v2);
+    // Do add.
+    Value *res = doAdcVV<width>(ip, b, addr, v2);
 
-	// Write to o2.
-	R_WRITE<width>(b, o2.getReg(), res);
+    // Write to o2.
+    R_WRITE<width>(b, o2.getReg(), res);
 
     return ContinueBlock;
 }
@@ -496,7 +496,7 @@ static InstTransResult doAdcRR(InstPtr ip, BasicBlock *&b,
     return ContinueBlock;
 }
 
-GENERIC_TRANSLATION(ADD16i16, doAddRI<16>(ip, block, MCOperand::CreateReg(X86::EAX), MCOperand::CreateReg(X86::EAX), OP(0)))
+GENERIC_TRANSLATION(ADD16i16, doAddRI<16>(ip, block, MCOperand::CreateReg(X86::AX), MCOperand::CreateReg(X86::AX), OP(0)))
 
 GENERIC_TRANSLATION_REF(ADD16mi, 
         doAddMI<16>(ip, block, ADDR_NOREF(0), OP(5)),
@@ -544,9 +544,11 @@ GENERIC_TRANSLATION_REF(ADD64mi8,
         doAddMI<64>(ip, block, ADDR_NOREF(0), OP(5)),
         doAddMI<64>(ip, block, MEM_REFERENCE(0), OP(5)))
 
-GENERIC_TRANSLATION_REF(ADD64mi32,
+GENERIC_TRANSLATION_MI(ADD64mi32,
       doAddMI<64>(ip, block, ADDR_NOREF(0), OP(5)),
-      doAddMI<64>(ip, block, MEM_REFERENCE(0), OP(5)))
+      doAddMI<64>(ip, block, MEM_REFERENCE(0), OP(5)),
+      doAddMV<64>(ip, block, ADDR_NOREF(0), IMM_AS_DATA_REF(block, natM, ip)),
+      doAddMV<64>(ip, block, MEM_REFERENCE(0), IMM_AS_DATA_REF(block, natM, ip)))
 
 GENERIC_TRANSLATION_REF(ADD32mr, 
         doAddMR<32>(ip, block, ADDR_NOREF(0), OP(5)),
@@ -582,7 +584,7 @@ GENERIC_TRANSLATION(ADD64rr, doAddRR<64>(ip, block, OP(0), OP(1), OP(2)))
 GENERIC_TRANSLATION(ADD32rr, doAddRR<32>(ip, block, OP(0), OP(1), OP(2)))
 GENERIC_TRANSLATION(ADD32rr_DB, doAddRR<32>(ip, block, OP(0), OP(1), OP(2)))
 GENERIC_TRANSLATION(ADD32rr_REV, doAddRR<32>(ip, block, OP(0), OP(1), OP(2)))
-GENERIC_TRANSLATION(ADD8i8, doAddRI<8>(ip, block, MCOperand::CreateReg(X86::EAX), MCOperand::CreateReg(X86::EAX), OP(0)))
+GENERIC_TRANSLATION(ADD8i8, doAddRI<8>(ip, block, MCOperand::CreateReg(X86::AL), MCOperand::CreateReg(X86::AL), OP(0)))
 
 GENERIC_TRANSLATION_REF(ADD8mi, 
         doAddMI<8>(ip, block, ADDR_NOREF(0), OP(5)),
@@ -649,6 +651,7 @@ GENERIC_TRANSLATION_REF(ADC64ri32,
 
 GENERIC_TRANSLATION(ADC32ri, doAdcRI<32>(ip, block, OP(0), OP(1), OP(2)))
 GENERIC_TRANSLATION(ADC32ri8, doAdcRI8<32>(ip, block, OP(0), OP(1), OP(2)))
+GENERIC_TRANSLATION(ADC64ri8, doAdcRI8<64>(ip, block, OP(0), OP(1), OP(2)))
 
 GENERIC_TRANSLATION_REF(ADC32rm, 
         doAdcRM<32>(ip, block, ADDR_NOREF(2), OP(0), OP(1)),
@@ -716,13 +719,13 @@ void ADD_populateDispatchMap(DispatchMap &m)
     m[X86::ADD64ri32_DB] = translate_ADD64ri32;
     m[X86::ADD64i32] = translate_ADD64i32;
     m[X86::ADD64mi8] = translate_ADD64mi8;;
-	m[X86::ADD64mi32] = translate_ADD64mi32;
+    m[X86::ADD64mi32] = translate_ADD64mi32;
 
-	m[X86::ADD64rr_DB] = translate_ADD64rr;
-	m[X86::ADD64rr] = translate_ADD64rr;
-	m[X86::ADD64rr_REV] = translate_ADD64rr;
-	m[X86::ADD64rm] = translate_ADD64rm;
-	m[X86::ADD64mr] = translate_ADD64mr;
+    m[X86::ADD64rr_DB] = translate_ADD64rr;
+    m[X86::ADD64rr] = translate_ADD64rr;
+    m[X86::ADD64rr_REV] = translate_ADD64rr;
+    m[X86::ADD64rm] = translate_ADD64rm;
+    m[X86::ADD64mr] = translate_ADD64mr;
 
 
     m[X86::ADC16i16] = translate_ADC16i16;
@@ -740,6 +743,7 @@ void ADD_populateDispatchMap(DispatchMap &m)
     m[X86::ADC32mr] = translate_ADC32mr;
     m[X86::ADC32ri] = translate_ADC32ri;
     m[X86::ADC32ri8] = translate_ADC32ri8;
+    m[X86::ADC64ri8] = translate_ADC64ri8;
     m[X86::ADC32rm] = translate_ADC32rm;
     m[X86::ADC32rr] = translate_ADC32rr;
     m[X86::ADC32rr_REV] = translate_ADC32rr_REV;
@@ -751,7 +755,7 @@ void ADD_populateDispatchMap(DispatchMap &m)
     m[X86::ADC8rr] = translate_ADC8rr;
     m[X86::ADC8rr_REV] = translate_ADC8rr_REV;
 
-	m[X86::ADC64i32] = translate_ADC64i32;
-	m[X86::ADC64ri32] = translate_ADC64ri32;
-	m[X86::ADC64rr] = translate_ADC64rr;
+    m[X86::ADC64i32] = translate_ADC64i32;
+    m[X86::ADC64ri32] = translate_ADC64ri32;
+    m[X86::ADC64rr] = translate_ADC64rr;
 }
