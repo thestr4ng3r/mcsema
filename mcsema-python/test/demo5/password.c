@@ -5,17 +5,19 @@
 #include <stdint.h>
 
 
+int password(int a)
+{
+	if(a == 42)
+		return 1;
+
+	return 0;
+}
+
+
 #define rotl64(value, n) (value << n | (value >> (64 - n)))
 #define rotr64(value, n) (value >> n | (value << (64 - n)))
 
 const uint32_t stuff[4] = { 0xdeadbeef, 0x1337f000, 0x42424242, 0x00c0ffee };
-
-int main2(int test)
-{
-	if(test == 42)
-		return 666;
-	return 1337;
-}
 
 int main(int argc, char *argv[])
 {

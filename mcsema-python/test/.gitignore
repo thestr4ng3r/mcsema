@@ -3,3 +3,5 @@
 *.bc
 *.cfg
 *.idb
+
+experiment/

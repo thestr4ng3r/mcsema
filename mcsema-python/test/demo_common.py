@@ -7,7 +7,7 @@ import mcsema
 import cfg_ida
 
 
-def begin():
+def begin(noclean=False):
 	clean_files = "*.o *.ll *.bc *.idb *.cfg demo_driver"
 
 	if len(argv) > 1:
@@ -15,7 +15,9 @@ def begin():
 			call("rm -fv " + clean_files, shell=True)
 			quit()
 
-	call("rm -f " + clean_files, shell=True)
+
+	if not noclean:
+		call("rm -f " + clean_files, shell=True)
 
 
 def cfg_generator(input_file):

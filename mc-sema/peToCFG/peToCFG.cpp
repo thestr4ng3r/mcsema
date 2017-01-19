@@ -944,6 +944,8 @@ static void extFuncFromNat(ExternalCodeRefPtr e, ::ExternalFunction *protoExt) {
     protoExt->set_has_return(false);
   }
 
+  protoExt->set_is_weak(e->isWeak());
+
   protoExt->set_calling_convention(serializeCC(e->getCallingConvention()));
   // protoExt->set_signature(e->getFunctionSignature());
 

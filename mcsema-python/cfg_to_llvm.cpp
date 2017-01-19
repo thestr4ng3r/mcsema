@@ -201,8 +201,9 @@ bool CFGToLLVM::Execute()
 			return false;
 		}
 
-		M->addModuleFlag(llvm::Module::Error, "Debug Info Version", (uint32_t)DEBUG_METADATA_VERSION);
-		M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
+		// TODO: maybe an option for this?
+		//M->addModuleFlag(llvm::Module::Error, "Debug Info Version", (uint32_t)DEBUG_METADATA_VERSION);
+		//M->addModuleFlag(llvm::Module::Error, "Dwarf Version", 3);
 
 		raw_string_ostream os(bitcode_data);
 		WriteBitcodeToFile(M, os);
