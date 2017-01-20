@@ -1,69 +1,67 @@
 
-
-from r2.r_core import *
 import CFG_pb2
+import r2pipe
+
 
 path = "test.o"
+out_file = "test.cfg"
+out_file_text = "test_text.cfg"
 
-rc = RCore()
-rc.file_open(path, 0, 0)
-rc.bin_load(None, 0)
 
-if not rc.anal_all():
-	print("Anal failed")
-	exit(1)
+r = r2pipe.open("test.o")
+r.cmd("aa")
 
 
 M = CFG_pb2.Module()
 M.module_name = path
 
-funcs = rc.anal.get_fcns()
-for f in funcs:
-	blocks = f.get_bbs()
-	print("+" + (72 * "-"))
-	print("| FUNCTION: %s @ 0x%x" % (f.name, f.addr))
-	print("| (%d blocks)" % (len (blocks)))
-	print("+" + (72 * "-"))
+functions = r.cmdj("aflj")
+
+
+for func in functions:
+	print("Function " + func["name"])
 
 	F = M.internal_funcs.add()
-	F.entry_address = f.addr
-	F.symbol_name = f.name
+	F.entry_address = func["offset"]
+	F.symbol_name = func["name"]
 
+	graph = r.cmdj("agj @ " + str(func["offset"]))
 
-	for b in blocks:
-		print("---[ Block @ 0x%x ]---" % (b.addr))
-		print("   | type:        %x" % (b.type))
-		print("   | size:        %d" % (b.size))
-		print("   | jump:        0x%x" % (b.jump))
-		print("   | fail:        0x%x" % (b.fail))
-		print("   | conditional: %d" % (b.conditional))
-		print("   | return:      %d" % (b.returnbb))
+	blocks = graph[0]["blocks"]
 
+	for block in blocks:
 		B = F.blocks.add()
-		b.base_address = b.addr
+		B.base_address = block["offset"]
 
-		#for succ in [b.jump, b.fail]:
-		#	if succ == -1:
-		#		continue
-		#	B.block_follows.extend(succ)
+		for k in ["jump", "fail"]:
+			if k in block:
+				B.block_follows.append(block[k])
 
-		cur_byte = b.addr
-		end_byte = b.addr + b.size
+		for op in block["ops"]:
+			I = B.insts.add()
+			I.inst_bytes = op["bytes"].decode("hex")
+			I.inst_addr = op["offset"]
+			I.inst_len = op["size"]
 
-		while cur_byte < end_byte:
-			asm_op = rc.disassemble(cur_byte)
+			if "jump" in op:
+				I.true_target = op["jump"]
 
-			if asm_op:
-				if asm_op.size == 0:
-					print("Bogus op")
-					break
+			if "fail" in op:
+				I.false_target = op["fail"]
 
-				print("0x%x %s" % (cur_byte, asm_op.buf_asm))
 
-				cur_byte += asm_op.size
-			else:
-				print("Invalid at" + f.addr)
-				break
+
+
+outf = open(out_file, "wb")
+outf.write(M.SerializeToString())
+outf.close()
+
+from google.protobuf import text_format
+
+outf = open(out_file_text, "wb")
+outf.write(text_format.MessageToString(M))
+outf.close()
+
 
 
 
