@@ -20,7 +20,7 @@ print("---------------------------------------")
 cfg_gen = common.cfg_generator("demo_test.o")
 cfg_gen.arch = "x86"
 cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-cfg_gen.entry_symbols = ["start"]
+cfg_gen.entry_symbols = ["test_fancy"]
 cfg_gen.execute("demo_test.cfg")
 
 
@@ -29,17 +29,7 @@ print("Translate to LLVM")
 print("---------------------------------------")
 
 cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
-
-driver = mcsema.DriverEntry()
-driver.is_raw = False
-driver.argc = 0
-driver.returns = False
-driver.name = "demo_entry"
-driver.sym = "start"
-driver.ep = 0
-driver.cconv = mcsema.calling_convention.caller_cleanup
-
-cfg_to_llvm.drivers = [driver]
+cfg_to_llvm.entry_points = ["test_fancy"]
 cfg_to_llvm.execute("demo_test.bc")
 
 
@@ -55,6 +45,8 @@ print(llvm_code)
 print("---------------------------------------\n")
 
 
-call("llc -filetype=obj -o demo_test_opt_llvm.o demo_test_opt.bc", shell=True)
-call("clang -m32 demo_driver.c demo_test_opt_llvm.o -o demo_driver", shell=True)
+#call("llc -filetype=obj -o demo_test_opt_llvm.o demo_test_opt.bc", shell=True)
+#call("clang -m32 demo_driver.c demo_test_opt_llvm.o -o demo_driver", shell=True)
+
+call("clang -m32 ../../../drivers/ELF_32_linux.S demo_test_opt.bc demo_driver.c -o demo_driver", shell=True)
 call("./demo_driver", shell=True)

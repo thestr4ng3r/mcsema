@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-extern void demo_entry(void);
+extern void test_fancy(void);
 
 int main(int argc, char *argv[])
 {
-    demo_entry();
+    test_fancy();
     return 0;
 }
