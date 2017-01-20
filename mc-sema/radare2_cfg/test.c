@@ -17,3 +17,9 @@ int core(int a, int b)
 
 	return 42;
 }
+
+int main(void)
+{
+	core(10, 15);
+	return 0;
+}

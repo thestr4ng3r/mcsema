@@ -2,13 +2,16 @@
 import CFG_pb2
 import r2pipe
 
+from pprint import pprint
 
-path = "test.o"
+
+path = "test_ex"
 out_file = "test.cfg"
 out_file_text = "test_text.cfg"
 
+entries = ["sym.core"]
 
-r = r2pipe.open("test.o")
+r = r2pipe.open(path)
 r.cmd("aa")
 
 
@@ -20,6 +23,14 @@ functions = r.cmdj("aflj")
 
 for func in functions:
 	print("Function " + func["name"])
+
+	if func["name"] not in ["sym.vermillion", "sym.core"]:
+		continue
+
+	if func["name"] in entries:
+		E = M.entries.add()
+		E.entry_name = func["name"]
+		E.entry_address = func["offset"]
 
 	F = M.internal_funcs.add()
 	F.entry_address = func["offset"]
@@ -43,11 +54,16 @@ for func in functions:
 			I.inst_addr = op["offset"]
 			I.inst_len = op["size"]
 
+			#print("-------------------")
+
+			#pprint(op)
+
 			if "jump" in op:
 				I.true_target = op["jump"]
 
 			if "fail" in op:
 				I.false_target = op["fail"]
+
 
 
 

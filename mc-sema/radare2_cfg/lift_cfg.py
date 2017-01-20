@@ -8,7 +8,7 @@ print("---------------------------------------")
 mcsema.initialize()
 
 cfg_to_llvm = mcsema.CFGToLLVM("x86_64-pc-linux-gnu", "test.cfg")
-cfg_to_llvm.entry_points = ["entry0"]
+cfg_to_llvm.entry_points = ["sym.core"]
 cfg_to_llvm.execute("test.bc")
 
 
