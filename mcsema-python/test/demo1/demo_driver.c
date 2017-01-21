@@ -3,46 +3,28 @@
 
 #include "../../../mc-sema/common/RegisterState.h"
 
-extern void demo_entry(RegState *);
+#define add_one_raw sub_8000001
+extern void add_one_raw(RegState *);
 
-unsigned long getNextPC(void)
+int add_one_driver(int v)
 {
-    return 0;
-}
-
-int doDemo1(int k)
-{
-    RegState        rState;
+    RegState        reg_state;
     unsigned long   stack[4096*10];
 
-    memset(&rState, 0, sizeof(rState));
+    memset(&reg_state, 0, sizeof(reg_state));
 
-    //set up the stack 
-    rState.ESP = (unsigned long) &stack[4096*9];
-    rState.EAX = k;
+    reg_state.ESP = (unsigned long)&stack[4096*9];
+    reg_state.EAX = v;
 
-    demo_entry(&rState);
+    add_one_raw(&reg_state);
 
-    return rState.EAX;
+    return reg_state.EAX;
 }
 
-
-int main(int argc, char *argv[]) {
-
-    int k = doDemo1(12);
-
-    printf("%d -> %d\n", 12, k);
-
-	return 0;
-}
-
-/*
-extern int demo_entry(int a);
 
 int main(int argc, char *argv[])
 {
-    printf("Result: %d\n", demo_entry(41));
-
-    return 0;
+    int a = add_one_driver(12);
+    printf("%d -> %d\n", 12, a);
+	return 0;
 }
-*/

@@ -1,6 +1,5 @@
 
-
-int fancy_calculation(int a)
+int deadwing(int a)
 {
 	return a + 5;
 }

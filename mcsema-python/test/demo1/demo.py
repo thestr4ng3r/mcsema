@@ -21,7 +21,7 @@ cfg_gen = common.cfg_generator("demo_test.o")
 cfg_gen.arch = "x86"
 cfg_gen.debug_mode = False
 cfg_gen.func_maps = []
-cfg_gen.entry_symbols = ["start"]
+cfg_gen.entry_symbols = ["add_one"]
 
 cfg_gen.execute("demo_test.cfg")
 
@@ -31,7 +31,7 @@ print("Translate to LLVM")
 print("---------------------------------------")
 
 cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
-cfg_to_llvm.entry_points = ["start"]
+cfg_to_llvm.entry_points = ["add_one"]
 cfg_to_llvm.execute("demo_test.bc")
 
 
@@ -48,6 +48,6 @@ print("---------------------------------------\n")
 
 
 
-call("clang -m32 ../../../mc-sema/drivers/ELF_32_linux.S demo_test_opt.bc demo_driver.c -o demo_driver")
+call("clang -m32 ../../../drivers/ELF_32_linux.S demo_test_opt.bc demo_driver.c -o demo_driver", shell=True)
 
 call("./demo_driver", shell=True)

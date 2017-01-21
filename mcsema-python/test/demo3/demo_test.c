@@ -1,50 +1,23 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 
-int switch_func(int a)
+int blackest_eyes(int a)
 {
-	//printf("begin of switch_func\n");
+	return a * 7;
+}
 
-	switch(a)
+int main(int argc, char *argv[])
+{
+	if(argc != 2)
 	{
-		case 0:
-			printf("42\n");
-			//return 42;
-			break;
-		case 1:
-			printf("1337\n");
-			//return 1337;
-			break;
-		case 2:
-			printf("-1\n");
-			//return -1;
-			break;
-		case 3:
-			printf("1233\n");
-			//return 1233;
-			break;
-		case 4:
-			printf("3453\n");
-			//return 3453;
-			break;
-		case 5:
-			printf("4563\n");
-			//return 4563;
-			break;
-		case 6:
-			printf("-45656");
-			//return -45656;
-			break;
-		case 7:
-			printf("4563");
-			//return 4563;
-			break;
-		default:
-			//return 1234;
-			break;
+		printf("Usage: %s [number]\n", argv[0]);
+		return 1;
 	}
 
-	printf("end of switch_func\n");
+	int a = atoi(argv[1]);
+	a = blackest_eyes(a);
 
-	return 12345;
+	printf("The result is %d.\n", a);
+	return 0;
 }
