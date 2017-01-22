@@ -1,4 +1,9 @@
 
+int offset_func(int a)
+{
+	return a * 3;
+}
+
 int vermillion(int a)
 {
 	return a + 1;
