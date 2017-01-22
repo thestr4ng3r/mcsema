@@ -3,5 +3,6 @@
 *.bc
 *.cfg
 *.idb
+*.i64
 
 experiment/

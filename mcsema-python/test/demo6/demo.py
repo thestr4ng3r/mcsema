@@ -21,8 +21,7 @@ print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
 
-#cfg_gen = common.cfg_generator("qual")
-cfg_gen = mcsema.BinDescend("qual")
+cfg_gen = common.cfg_generator("qual")
 
 cfg_gen.debug_mode = True
 cfg_gen.batch_mode = True
@@ -66,29 +65,6 @@ print("\n\n---------------------------------------")
 print("KLEE Driver")
 print("---------------------------------------")
 
-#call("clang -g ../../../drivers/ELF_64_linux.S password_opt.bc driver_klee.c -o driver_klee", shell=True)
-#call("./driver_klee", shell=True)
-
 call("clang -DDEMO_KLEE -I /home/florian/dev/klee/include -I ../../../mc-sema/common -emit-llvm -c driver.c -o driver_klee.bc", shell=True)
 call("llvm-link driver_klee.bc qual_opt.bc -o driver_klee_linked.bc", shell=True)
-
-
-
-
-
-#print("\n\n---------------------------------------")
-#print("KLEE Driver")
-#print("---------------------------------------")
-
-#call("clang -g ../../../drivers/ELF_64_linux.S qual_opt.bc driver_klee.c -o driver_klee", shell=True)
-#call("./driver_klee", shell=True)
-
-
-
-
-
-#call("clang -I /home/florian/dev/klee/include -emit-llvm -c driver_klee.c -o driver_klee.bc", shell=True)
-#call("llvm-link driver_klee.bc qual_opt.bc -o driver_klee_linked.bc", shell=True)
-
-
 
