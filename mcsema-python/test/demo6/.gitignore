@@ -1,4 +1,0 @@
-driver
-klee-out-*
-klee-last
-!qual_opt_mod.ll

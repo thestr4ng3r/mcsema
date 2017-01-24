@@ -4,6 +4,7 @@ import subprocess
 from os.path import join, dirname, splitext
 import os
 
+
 class IDACFGGenerator():
 	def __init__(self, ida_exec, get_cfg_py, input_file):
 		self._ida_exec = ida_exec
@@ -11,7 +12,6 @@ class IDACFGGenerator():
 		self._input_file = input_file
 
 		self.entry_symbols = []
-		#self.entry_points = []
 
 		self.func_maps = []
 

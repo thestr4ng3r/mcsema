@@ -12,7 +12,6 @@ BOOST_PYTHON_MODULE(mcsema)
 {
 	def("initialize", InitializeMCSema);
 
-
 	class_<NativeModule, boost::shared_ptr<NativeModule>>("NativeModule", no_init);
 
 	class_<BinDescend>("BinDescend", init<std::string>())
@@ -27,24 +26,12 @@ BOOST_PYTHON_MODULE(mcsema)
 			.add_property("native_module", &BinDescend::GetNativeModule)
 			.add_property("target_triple", &BinDescend::GetTargetTriple);
 
-
-
 	enum_<ExternalCodeRef::CallingConvention>("calling_convention")
 			.value("caller_cleanup", ExternalCodeRef::CallerCleanup)
 			.value("callee_cleanup", ExternalCodeRef::CalleeCleanup)
 			.value("fast_call", ExternalCodeRef::FastCall)
 			.value("x86_64_sysv", ExternalCodeRef::X86_64_SysV)
 			.value("x86_64_win64", ExternalCodeRef::X86_64_Win64);
-
-	/*class_<DriverEntry>("DriverEntry")
-			.def_readwrite("is_raw", &DriverEntry::is_raw)
-			.def_readwrite("returns", &DriverEntry::returns)
-			.def_readwrite("argc", &DriverEntry::argc)
-			.def_readwrite("name", &DriverEntry::name)
-			.def_readwrite("sym", &DriverEntry::sym)
-			.def_readwrite("sign", &DriverEntry::sign)
-			.def_readwrite("ep", &DriverEntry::ep)
-			.def_readwrite("cconv", &DriverEntry::cconv);*/
 
 	class_<CFGToLLVM>("CFGToLLVM", init<std::string, object>())
 			.def("execute", &CFGToLLVM::Execute)

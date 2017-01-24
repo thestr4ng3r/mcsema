@@ -1,19 +1,14 @@
 
-
 import sys
 import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 import demo_common as common
+from demo_common import call
 
 common.begin(noclean=True)
 
 
-
-
 import mcsema
-from subprocess import call
-
-call("clang -O0 -o password password.c", shell=True)
 
 mcsema.initialize()
 
@@ -21,57 +16,54 @@ print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
 
-cfg_gen = common.cfg_generator("password")
+cfg_gen = common.cfg_generator("qual", "x86-64")
 
 cfg_gen.debug_mode = True
 cfg_gen.batch_mode = True
-cfg_gen.arch = "x86-64"
 cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
-cfg_gen.entry_symbols = ["password"]
+cfg_gen.entry_symbols = ["main"]
 cfg_gen.ignore_native_entry_points = True
 
-cfg_gen.execute("password.cfg")
+cfg_gen.execute("qual.cfg")
 
 
 print("\n\n---------------------------------------")
 print("Translate to LLVM")
 print("---------------------------------------")
 
-cfg_to_llvm = mcsema.CFGToLLVM("x86_64-pc-linux-gnu", "password.cfg")
+cfg_to_llvm = mcsema.CFGToLLVM("x86_64-pc-linux-gnu", "qual.cfg")
 
-cfg_to_llvm.entry_points = ["password"]
-cfg_to_llvm.execute("password.bc")
-
-
-call("opt -O3 password.bc -o password_opt.bc", shell=True)
-call("llvm-dis password_opt.bc", shell=True)
-#llvm_code = open("password_opt.ll").read()
+cfg_to_llvm.entry_points = ["main"]
+cfg_to_llvm.execute("qual.bc")
 
 
-#call("llvm-as password_opt_mod.ll -o password_opt.bc", shell=True)
-
-
-#call("llc -filetype=obj -o password_opt.o password_opt.bc", shell=True)
-#call("clang driver.c password_opt.o -o driver", shell=True)
+call("opt -O3 qual.bc -o qual_opt.bc")
+call("llvm-dis qual_opt.bc")
+call("llvm-as qual_opt_mod.ll -o qual_opt.bc")
 
 print("\n\n---------------------------------------")
 print("Test Driver")
 print("---------------------------------------")
 
-call("clang  -I ../../../mc-sema/common ../../../drivers/ELF_64_linux.S password_opt.bc driver.c -o driver", shell=True)
-call("./driver 0", shell=True)
-call("./driver 42", shell=True)
-
+call("clang -O0 -g -I ../../../mc-sema/common ../../../drivers/ELF_64_linux.S qual_opt.bc driver.c -o driver")
+call("./driver")
 
 print("\n\n---------------------------------------")
 print("KLEE Driver")
 print("---------------------------------------")
 
-#call("clang -g ../../../drivers/ELF_64_linux.S password_opt.bc driver_klee.c -o driver_klee", shell=True)
-#call("./driver_klee", shell=True)
+klee_include_dir = os.getenv("KLEE_INCLUDE_DIR")
+if not klee_include_dir or klee_include_dir == "":
+	print("Environment variable KLEE_INCLUDE_DIR not set.")
+	exit(1)
 
-call("clang -DDEMO_KLEE -I /home/florian/dev/klee/include -I ../../../mc-sema/common -emit-llvm -c driver.c -o driver_klee.bc", shell=True)
-call("llvm-link driver_klee.bc password_opt.bc -o driver_klee_linked.bc", shell=True)
+call("clang -DDEMO_KLEE -I %s -I ../../../mc-sema/common -emit-llvm -c driver.c -o driver_klee.bc" % klee_include_dir)
+call("llvm-link driver_klee.bc qual_opt.bc -o driver_klee_linked.bc")
 
 
+print("\n\n---------------------------------------")
+print("Running KLEE")
+print("---------------------------------------")
+
+call("klee driver_klee_linked.bc")
 

@@ -1,7 +1,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 #include "RegisterState.h"
 
@@ -9,65 +8,93 @@
 #include <klee/klee.h>
 #endif
 
-
-#define password_raw sub_4004e0
-
-extern void password_raw(RegState *);
-
 unsigned long stack[4096*10];
 RegState reg_state;
 
-int password_driver(int a)
+
+char password[] = "thisistheinputstring....";
+
+char *_fgets(char *s, int size, FILE *stream)
 {
+	reg_state.RSP += 8;
+	printf("Skipping fgets with stub data.\n");
+	strcpy(s, password);
+	return s;
+}
+
+int _puts(const char *s)
+{
+	reg_state.RSP += 8;
+	return puts(s);
+}
+
+void _free(void *ptr)
+{
+	reg_state.RSP += 8;
+	free(ptr);
+}
+
+void *_malloc(size_t size)
+{
+	reg_state.RSP += 8;
+	return malloc(size);
+}
+
+void *_memcpy(void *dest, const void *src, size_t n)
+{
+	reg_state.RSP += 8;
+	return memcpy(dest, src, n);
+}
+
+void _exit(int status)
+{
+	reg_state.RSP += 8;
+	exit(status);
+}
+
+extern void b64d(RegState *reg_state);
+
+void b64d_fake(RegState *reg_state)
+{
+	reg_state->RSP += 8;
+	char *b64_str = (char *)reg_state->RDI;
+	unsigned char **out_buf = (unsigned char **)reg_state->RSI;
+
+	unsigned char *buf = (unsigned char *)malloc(16);
+#ifdef DEMO_KLEE
+	klee_make_symbolic(buf, 16, "password");
+#else
+	memset(buf, 0, 16);
+#endif
+	(*out_buf) = buf;
+
+	int ret = 16;
+	reg_state->RAX = (unsigned long)ret;
+}
+
+
+
+#define qual_main_raw sub_40079f
+extern void qual_main_raw(RegState *);
+
+int qual_main_driver(int argc, char **argv)
+{
+	memset(&stack, 0, sizeof(stack));
 	memset(&reg_state, 0, sizeof(reg_state));
 
 	reg_state.RBP = 0;
 	reg_state.RSP = (unsigned long)&stack[4096*9];
 
-	reg_state.RDI = (unsigned long)a;
+	reg_state.RDI = (unsigned long)argc;
+	reg_state.RSI = (unsigned long)argv;
 
-	password_raw(&reg_state);
+	qual_main_raw(&reg_state);
 
 	return (int)reg_state.RAX;
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
-	/*char pw_value[16];
-	klee_make_symbolic(pw_value, sizeof(pw_value), "password");
-
-	int pw_argc = 2;
-	char *pw_argv[2] = { argv[0], pw_value };
-
-	int r = password_driver(pw_argc, pw_argv);
-
-	return r;*/
-
-	int pw;
-
-#ifndef DEMO_KLEE
-	if(argc != 2)
-	{
-		printf("usage: %s [password number]\n", argv[0]);
-		return 1;
-	}
-
-	pw = atoi(argv[1]);
-#else
-	klee_make_symbolic(&pw, sizeof(pw), "password");
-#endif
-
-	int result = password_driver(pw);
-
-	if(result == 1)
-	{
-		printf("Correct.\n");
-	}
-	else
-	{
-		printf("Wrong.\n");
-	}
-
-	return 0;
+	return qual_main_driver(argc, argv);
 }

@@ -4,5 +4,6 @@
 *.cfg
 *.idb
 *.i64
+*.log
 
 experiment/

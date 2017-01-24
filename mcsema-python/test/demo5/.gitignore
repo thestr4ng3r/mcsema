@@ -1,3 +1,4 @@
-demo_driver
 driver
-klee-*
+klee-out-*
+klee-last
+!qual_opt_mod.ll
