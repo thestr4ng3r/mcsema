@@ -25,8 +25,8 @@ Bare documentation using Sphinx is available in [docs](./docs) with pre-build [h
 
 A variety of demos is available in [test](./test), each in its own folder:
 
- * [Demo 1](./demo1): Very simple assembly function from the original demo1 for McSema.
- * [Demo 2](./demo2): Simple C Function.
- * [Demo 3](./demo3): Recompiling an executable with multiple internal functions and external calls.
- * [Demo 4](./demo4): Lifting a function with a jump table. Currently produces a Segmentation Fault.
- * [Demo 5](./demo5): Solving a CrackMe by lifting a given ELF64 executable, replacing a function and using KLEE to perform symbolic execution. Requires an installation of KLEE for LLVM 3.5. 
+ * [Demo 1](./test/demo1): Very simple assembly function from the original demo1 for McSema.
+ * [Demo 2](./test/demo2): Simple C Function.
+ * [Demo 3](./test/demo3): Recompiling an executable with multiple internal functions and external calls.
+ * [Demo 4](./test/demo4): Lifting a function with a jump table. Currently produces a Segmentation Fault.
+ * [Demo 5](./test/demo5): Solving a CrackMe by lifting a given ELF64 executable, replacing a function and using KLEE to perform symbolic execution. Requires an installation of KLEE for LLVM 3.5. 

@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mcsema.mcsema – McSema’s internal functionality &mdash; McSema Python  documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="McSema Python  documentation" href="index.html"/>
+        <link rel="next" title="mcsema.cfg_ida – IDA Pro get_cfg.py wrapper" href="cfg_ida.html"/>
+        <link rel="prev" title="Welcome to McSema Python’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> McSema Python
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">mcsema.mcsema &#8211; McSema&#8217;s internal functionality</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cfg_ida.html">mcsema.cfg_ida &#8211; IDA Pro get_cfg.py wrapper</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">McSema Python</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>mcsema.mcsema &#8211; McSema&#8217;s internal functionality</li>
+    <li class="wy-breadcrumbs-aside">
+      
+          
+          <a href="_sources/mcsema.rst.txt" rel="nofollow"> View page source</a>
+        
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-mcsema.msema">
+<span id="mcsema-mcsema-mcsema-s-internal-functionality"></span><span id="mcsema"></span><h1>mcsema.mcsema &#8211; McSema&#8217;s internal functionality<a class="headerlink" href="#module-mcsema.msema" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="mcsema.msema.NativeModule">
+<em class="property">class </em><code class="descclassname">mcsema.msema.</code><code class="descname">NativeModule</code><a class="headerlink" href="#mcsema.msema.NativeModule" title="Permalink to this definition">¶</a></dt>
+<dd><p>A module in native code in the form of a control flow graph.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="mcsema.msema.BinDescend">
+<em class="property">class </em><code class="descclassname">mcsema.msema.</code><code class="descname">BinDescend</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.BinDescend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exposes the functionality of bin_descend. <em>input_file</em> specifies the
+path to the binary.</p>
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.arch">
+<code class="descname">arch</code><a class="headerlink" href="#mcsema.msema.BinDescend.arch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Architecture of the binary. Set to &#8220;x86&#8221; or &#8220;x86-64&#8221;.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.func_maps">
+<code class="descname">func_maps</code><a class="headerlink" href="#mcsema.msema.BinDescend.func_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of paths to txt files containing information about external functions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.entry_symbols">
+<code class="descname">entry_symbols</code><a class="headerlink" href="#mcsema.msema.BinDescend.entry_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of entry points in the form of symbols.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.entry_points">
+<code class="descname">entry_points</code><a class="headerlink" href="#mcsema.msema.BinDescend.entry_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of entry points in the form of addresses.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.ignore_native_entry_points">
+<code class="descname">ignore_native_entry_points</code><a class="headerlink" href="#mcsema.msema.BinDescend.ignore_native_entry_points" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.debug_mode">
+<code class="descname">debug_mode</code><a class="headerlink" href="#mcsema.msema.BinDescend.debug_mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.native_module">
+<code class="descname">native_module</code><a class="headerlink" href="#mcsema.msema.BinDescend.native_module" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>readonly</em>. Contains the <a class="reference internal" href="#mcsema.msema.NativeModule" title="mcsema.msema.NativeModule"><code class="xref py py-class docutils literal"><span class="pre">NativeModule</span></code></a> after a successful CFG recovery.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.BinDescend.target_triple">
+<code class="descname">target_triple</code><a class="headerlink" href="#mcsema.msema.BinDescend.target_triple" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>readonly</em>. Contains the target triple which can be passed to <a class="reference internal" href="#mcsema.msema.CFGToLLVM" title="mcsema.msema.CFGToLLVM"><code class="xref py py-class docutils literal"><span class="pre">CFGToLLVM</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcsema.msema.BinDescend.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.BinDescend.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recover CFG. Returns True on success and False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>cfg_file</em><span class="sig-paren">)</span></dt>
+<dd><p>Like <em>execute()</em>, but additionally save the CFG to <em>cfg_file</em>
+in McSema&#8217;s Protobuf format.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="mcsema.msema.CFGToLLVM">
+<em class="property">class </em><code class="descclassname">mcsema.msema.</code><code class="descname">CFGToLLVM</code><span class="sig-paren">(</span><em>target_triple</em>, <em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.CFGToLLVM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exposes the functionality of cfg_to_bc.
+<em>target_triple</em> can be passed from :<a class="reference internal" href="#mcsema.msema.BinDescend" title="mcsema.msema.BinDescend"><code class="xref py py-class docutils literal"><span class="pre">BinDescend</span></code></a>.
+<em>cfg</em> can be either a path to a CFG file as a string or an instance of <a class="reference internal" href="#mcsema.msema.NativeModule" title="mcsema.msema.NativeModule"><code class="xref py py-class docutils literal"><span class="pre">NativeModule</span></code></a>.</p>
+<dl class="attribute">
+<dt id="mcsema.msema.CFGToLLVM.native_module">
+<code class="descname">native_module</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.native_module" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#mcsema.msema.NativeModule" title="mcsema.msema.NativeModule"><code class="xref py py-class docutils literal"><span class="pre">NativeModule</span></code></a> used as the input to lift.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.CFGToLLVM.target_triple">
+<code class="descname">target_triple</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.target_triple" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.CFGToLLVM.entry_points">
+<code class="descname">entry_points</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.entry_points" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of names for entry points.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="mcsema.msema.CFGToLLVM.bitcode">
+<code class="descname">bitcode</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.bitcode" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>readonly</em>. Contains lifted bitcode after a successful translation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcsema.msema.CFGToLLVM.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.CFGToLLVM.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Translate to LLVM. Resulting bitcode can be read from <em>bitcode</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>bc_file</em><span class="sig-paren">)</span></dt>
+<dd><p>Like <em>execute()</em>, but additionally save the bitcode to <em>bc_file</em>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="cfg_ida.html" class="btn btn-neutral float-right" title="mcsema.cfg_ida – IDA Pro get_cfg.py wrapper" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to McSema Python’s documentation!" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Florian Märkl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
