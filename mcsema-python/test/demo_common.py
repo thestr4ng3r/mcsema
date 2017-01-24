@@ -37,7 +37,7 @@ def cfg_generator(input_file, system_arch):
 		print("To use IDA for CFG recovery, specify the path to idaq and idaq64 in the environment variables IDA_EXEC and IDA64_EXEC.")
 		print("----")
 		print("Using bin_descend for CFG generation.")
-		bin_descend = mcsema.BinDescend(input_file)
+		bin_descend = mcsema.mcsema.BinDescend(input_file)
 		bin_descend.arch = system_arch
 		return bin_descend
 

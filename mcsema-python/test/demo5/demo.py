@@ -8,7 +8,7 @@ from demo_common import call
 common.begin(noclean=True)
 
 
-import mcsema
+from mcsema import mcsema
 
 mcsema.initialize()
 

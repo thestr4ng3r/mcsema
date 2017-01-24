@@ -7,7 +7,7 @@ from demo_common import call
 
 common.begin()
 
-import mcsema
+from mcsema import mcsema
 
 call("nasm -f elf32 -o demo_test.o demo_test.asm")
 

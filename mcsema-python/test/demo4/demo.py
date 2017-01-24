@@ -7,7 +7,7 @@ from demo_common import call
 
 common.begin()
 
-import mcsema
+from mcsema import mcsema
 
 call("clang -O0 -m32 -c -o demo_test.o demo_test.c")
 
