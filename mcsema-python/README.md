@@ -15,7 +15,11 @@ mcsema
 |-- cfg_ida
 |-- mcsema
 ```
-While mcsema.mcsema contains everything exposed from C++, cfg_ida provides a wrapper to conveniently run IDA Pro with the get_cfg.py script.
+While mcsema.mcsema contains everything exposed from C++, mcsema.cfg_ida provides a wrapper to conveniently run IDA Pro with the get_cfg.py script.
+
+## Documentation
+
+Bare documentation using Sphinx is available in [docs](./docs) with pre-build [html](./docs/build/html).   
 
 ## Demos
 
