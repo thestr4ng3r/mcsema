@@ -30,3 +30,7 @@ A variety of demos is available in [test](./test), each in its own folder:
  * [Demo 3](./test/demo3): Recompiling an executable with multiple internal functions and external calls.
  * [Demo 4](./test/demo4): Lifting a function with a jump table. Currently produces a Segmentation Fault.
  * [Demo 5](./test/demo5): Solving a CrackMe by lifting a given ELF64 executable, replacing a function and using KLEE to perform symbolic execution. Requires an installation of KLEE for LLVM 3.5. 
+
+Pre-generated CFG files for all demos are available in [test/cfg](./test/cfg) for anyone who does not have access to an IDA Pro license.
+
+For Demo 6, a modified version of KLEE for LLVM 3.5 is available in the repository [klee-llvm35](https://github.com/thestr4ng3r/klee-llvm35).

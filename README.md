@@ -1,9 +1,14 @@
+This is a fork of McSema created as part of the thesis "Case Study on LLVM as suitable intermediate language for binary analysis" by Florian Märkl.
+
+Here is a list of changes that have been made:
+* [mcsema-python](./mcsema-python) contains Python bindings for McSema, including multiple demos.
+* LLVM, Boost and Protobuf source code has been completely removed from the repository. Instead, Boost and Protobuf should, for example, be installed from distribution packages and a modified version of LLVM 3.5 is available in the repo [llvm-mcsema](https://github.com/thestr4ng3r/llvm-mcsema).
+* [mc-sema/radare2_cfg](./mc-sema/radare2_cfg) contains an experimental script to recover CFG using radare2 through r2pipe. It should only be considered as a proof of concept at the current state.
+
+Original README:
+
 MC-Semantics
 ============
-
-[![Build Status](https://travis-ci.org/trailofbits/mcsema.svg?branch=master)](https://travis-ci.org/trailofbits/mcsema)
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/4144/badge.svg)](https://scan.coverity.com/projects/4144)
-[![Slack Chat](http://empireslacking.herokuapp.com/badge.svg)](https://empireslacking.herokuapp.com/)
 
 MC-Semantics (or mcsema, pronounced 'em see se ma') is a library for translating the semantics of native code to LLVM IR. McSema support translation of x86 machine code, including integer, floating point, and SSE instructions. Control flow recovery is separated from translation, permitting the use of custom control flow recovery front-ends. Code for McSema is open-source and licensed under BSD3.
 
