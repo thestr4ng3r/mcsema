@@ -16,11 +16,10 @@
 
 
 #include "mcsema/cfgToLLVM/toModule.h"
-#include <toModule.h>
-#include <raiseX86.h>
+//#include <raiseX86.h>
 
 #include <llvm/IR/Verifier.h>
-#include <InstructionDispatch.h>
+#include "mcsema/cfgToLLVM/InstructionDispatch.h"
 
 #include "mcsema/Arch/Arch.h"
 #include "mcsema/BC/Util.h"
