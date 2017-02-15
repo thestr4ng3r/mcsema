@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-option(MCSEMA_BUILD_PYTHON "Build mcsema python bindings." ON)
+option(MCSEMA_BUILD_PYTHON "Build mcsema python bindings." OFF)
 
 
 if(MCSEMA_BUILD_PYTHON)
@@ -16,12 +16,10 @@ if(MCSEMA_BUILD_PYTHON)
 
 	set(MCSEMA_PYTHON_SRC
 			mcsemamodule.cpp
-			${BIN_DESCEND_SRC_DIR}/cfg_recover.cpp
-			${BIN_DESCEND_SRC_DIR}/ExternalFuncMap.cpp
-			bin_descend.cpp
-			bin_descend.h
 			cfg_to_llvm.cpp
-			cfg_to_llvm.h mcsema_init.cpp mcsema_init.h)
+			cfg_to_llvm.h
+			mcsema_init.cpp
+			mcsema_init.h)
 
 	set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
@@ -62,7 +60,6 @@ if(MCSEMA_BUILD_PYTHON)
 			binary_common)
 
 	set(MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE
-			pe-parser-library
 			LLVMBitReader
 			LLVMBitWriter
 			LLVMMCDisassembler
@@ -75,23 +72,13 @@ if(MCSEMA_BUILD_PYTHON)
 			LLVMX86Info
 			LLVMX86AsmPrinter
 			LLVMX86Utils
-			LLVMSupport
-			LLVMObject
-			LLVMMC
-			LLVMCore
-			LLVMMCParser
-			LLVMCodeGen
-			LLVMTarget
-			LLVMAnalysis
-			LLVMTransformUtils
-			LLVMipa
 			LLVMipo
-			LLVMObjCARCOpts
-			LLVMInstrumentation
+			LLVMTransformUtils
 			LLVMScalarOpts
-			LLVMInstCombine
+			LLVMInstrumentation
+			LLVMObjCARCOpts
 			${PROTOBUF_LIBRARIES}
-			tinfo
+			#tinfo
 			${Boost_FILESYSTEM_LIBRARY}
 			${Boost_SYSTEM_LIBRARY}
 			${Boost_PYTHON_LIBRARY})
@@ -112,8 +99,6 @@ if(MCSEMA_BUILD_PYTHON)
 
 	target_link_libraries(mcsema-python ${MCSEMA_PYTHON_LIBRARIES})
 	target_link_libraries(mcsema-python "-Wl,--whole-archive" ${MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
-
-	add_dependencies(mcsema-python binary_common peToCFG cfgToLLVM LLVMX86CodeGen)
 
 
 	execute_process(COMMAND "${PYTHON_EXECUTABLE}" -c "if True: from distutils import sysconfig as sc; print(sc.get_python_lib(prefix='', plat_specific=True))"

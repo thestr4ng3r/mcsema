@@ -9,8 +9,9 @@
 #include <vector>
 
 #include <boost/python.hpp>
+#include <llvm/Support/TargetRegistry.h>
 
-#include "cfg_recover.h"
+#include "mcsema/cfgToLLVM/raiseX86.h"
 
 class CFGToLLVM
 {

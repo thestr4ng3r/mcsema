@@ -4,15 +4,30 @@
 
 #include "cfg_to_llvm.h"
 
-#include "llvm/Bitcode/BitstreamWriter.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/Debug.h"
-#include <toLLVM.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Verifier.h>
+
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/Support/ToolOutputFile.h>
+
+
+#include "mcsema/cfgToLLVM/toModule.h"
 #include <toModule.h>
 #include <raiseX86.h>
+
 #include <llvm/IR/Verifier.h>
-#include <peToCFG.h>
 #include <InstructionDispatch.h>
+
+#include "mcsema/Arch/Arch.h"
+#include "mcsema/BC/Util.h"
+
+#include "mcsema/cfgToLLVM/ArchOps.h"
+#include "mcsema/cfgToLLVM/InstructionDispatch.h"
+#include "mcsema/cfgToLLVM/toModule.h"
 
 using namespace std;
 using namespace boost;
@@ -88,7 +103,7 @@ static VA findSymInModule(NativeModulePtr mod, const std::string &sym_name)
 
 CFGToLLVM::CFGToLLVM(std::string target_triple, boost::python::object input)
 {
-	this->target_triple = target_triple;
+	/*this->target_triple = target_triple;
 	LookupTarget();
 
 	python::extract<NativeModulePtr> module_extract(input);
@@ -99,7 +114,7 @@ CFGToLLVM::CFGToLLVM(std::string target_triple, boost::python::object input)
 		std::cerr << "Reading module ..." << std::endl;
 		std::string cfg_file = python::extract<std::string>(input);
 		this->module = readModule(cfg_file, ProtoBuff, list<VA>(), x86_target);
-	}
+	}*/
 }
 
 void CFGToLLVM::LookupTarget()
@@ -119,7 +134,7 @@ void CFGToLLVM::LookupTarget()
 
 bool CFGToLLVM::Execute()
 {
-	try
+	/*try
 	{
 		if(!module)
 		{
@@ -133,11 +148,11 @@ bool CFGToLLVM::Execute()
 		module->setTargetTriple(target_triple);
 
 		// TODO
-		/*bool IgnoreUnsupported = false;
-		if(IgnoreUnsupported)
-		{
-			ignoreUnsupportedInsts = true;
-		}*/
+		//bool IgnoreUnsupported = false;
+		//if(IgnoreUnsupported)
+		//{
+		//	ignoreUnsupportedInsts = true;
+		//}
 
 		//now, convert it to an LLVM module
 		cout << "Getting LLVM module..."  << endl;
@@ -213,13 +228,13 @@ bool CFGToLLVM::Execute()
 		std::cerr << "error: " << std::endl << e.what() << std::endl;
 		return false;
 	}
-
+	*/
 	return true;
 }
 
 bool CFGToLLVM::ExecuteAndSave(std::string output_file)
 {
-	if(!Execute())
+	/*if(!Execute())
 		return false;
 
 	try
@@ -233,7 +248,7 @@ bool CFGToLLVM::ExecuteAndSave(std::string output_file)
 	{
 		cout << "error: " << endl << e.what() << endl;
 		return false;
-	}
+	}*/
 
 	return true;
 }

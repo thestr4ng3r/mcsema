@@ -1,17 +1,13 @@
 # Copyright 2017 Peter Goodman (peter@trailofbits.com), all rights reserved.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 project(mcsema)
+
+set (CMAKE_CXX_STANDARD 11)
 
 if(WIN32)
 SET(CMAKE_EXE_LINKER_FLAGS "/LARGEADDRESSAWARE ${CMAKE_EXE_LINKER_FLAGS}")
 endif(WIN32)
-
-#find_package(Boost REQUIRED COMPONENTS filesystem date_time program_options system thread)
-#include_directories(${Boost_INCLUDE_DIRS})
-
-#add_subdirectory(mc-sema)
-#add_subdirectory(mcsema-python)
 
 set(MCSEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(MCSEMA_GEN_DIR "${MCSEMA_DIR}/generated")
@@ -42,9 +38,10 @@ add_compile_options(
   -x c++
   -g3
   -O0
-  -std=gnu++11
-  -fno-rtti
-  -DGOOGLE_PROTOBUF_NO_RTTI)
+#  -std=gnu++11
+#  -fno-rtti
+#  -DGOOGLE_PROTOBUF_NO_RTTI
+	)
 
 add_executable(mcsema-lift
   ${MCSEMA_DIR}/mcsema/Lift.cpp
@@ -83,6 +80,8 @@ add_executable(mcsema-lift
   ${MCSEMA_DIR}/mcsema/cfgToLLVM/x86Instrs_String.cpp
   ${MCSEMA_DIR}/mcsema/cfgToLLVM/x86Instrs_SUB.cpp)
 
+set_target_properties(mcsema-lift PROPERTIES COMPILE_FLAGS "-fno-rtti -DGOOGLE_PROTOBUF_NO_RTTI")
+
 target_link_libraries(mcsema-lift
   protobuf
   LLVMBitReader
@@ -107,3 +106,5 @@ install(
   TARGETS mcsema-lift
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib)
+
+add_subdirectory(python)
