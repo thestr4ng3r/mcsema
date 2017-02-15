@@ -1,5 +1,5 @@
 
-import mcsema
+from mcsema import mcsema
 
 print("\n\n---------------------------------------")
 print("Translate to LLVM")
