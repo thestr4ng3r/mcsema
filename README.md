@@ -1,9 +1,9 @@
-This is a fork of McSema created as part of the thesis "Case Study on LLVM as suitable intermediate language for binary analysis" by Florian Märkl.
+This is a fork of McSema created as part of the thesis "Case Study on LLVM as suitable intermediate language for binary analysis" by Florian Märkl. Please use the code from the tag specified in the thesis if you would like to use the exact state that was used in the thesis.
 
 Here is a list of changes that have been made:
-* [mcsema-python](python) contains Python bindings for McSema, including multiple demos.
-* LLVM, Boost and Protobuf source code has been completely removed from the repository. Instead, Boost and Protobuf should, for example, be installed from distribution packages and a modified version of LLVM 3.5 is available in the repo [llvm-mcsema](https://github.com/thestr4ng3r/llvm-mcsema).
-* [mc-sema/radare2_cfg](./mc-sema/radare2_cfg) contains an experimental script to recover CFG using radare2 through r2pipe. It should only be considered as a proof of concept at the current state.
+* [python](python) contains Python bindings for McSema, including multiple demos.
+* LLVM, Boost and Protobuf source code has been completely removed from the repository. Instead, Boost and Protobuf should, for example, be installed from distribution packages and a modified version of LLVM is available in the repo [llvm-mcsema](https://github.com/thestr4ng3r/llvm-mcsema).
+* [mcsema/radare2_cfg](./mcsema/radare2_cfg) contains an experimental script to recover CFG using radare2 through r2pipe. It should only be considered as a proof of concept at the current state.
 
 Original README:
 
