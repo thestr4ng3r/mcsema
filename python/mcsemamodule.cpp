@@ -20,11 +20,11 @@ BOOST_PYTHON_MODULE(mcsema)
 			.value("x86_64_sysv", ExternalCodeRef::X86_64_SysV)
 			.value("x86_64_win64", ExternalCodeRef::X86_64_Win64);
 
-	class_<CFGToLLVM>("CFGToLLVM", init<std::string, object>())
+	class_<CFGToLLVM>("CFGToLLVM", init<object>())
 			.def("execute", &CFGToLLVM::Execute)
 			.def("execute", &CFGToLLVM::ExecuteAndSave)
 			//.add_property("native_module", &CFGToLLVM::GetNativeModule, &CFGToLLVM::SetNativeModule)
-			.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)
+			//.add_property("target_triple", &CFGToLLVM::GetTargetTriple, &CFGToLLVM::SetTargetTriple)
 			.add_property("entry_points", &CFGToLLVM::GetEntryPoints, &CFGToLLVM::SetEntryPoints)
 			.add_property("bitcode", &CFGToLLVM::GetBitcode);
 }

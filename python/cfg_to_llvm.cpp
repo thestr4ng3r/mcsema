@@ -4,6 +4,11 @@
 
 #include "cfg_to_llvm.h"
 
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <system_error>
+
 #include <llvm/Bitcode/ReaderWriter.h>
 
 #include <llvm/IR/LLVMContext.h>
@@ -14,97 +19,18 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/ToolOutputFile.h>
 
-
-#include "mcsema/cfgToLLVM/toModule.h"
-//#include <raiseX86.h>
-
-#include <llvm/IR/Verifier.h>
-#include "mcsema/cfgToLLVM/InstructionDispatch.h"
-
 #include "mcsema/Arch/Arch.h"
-#include "mcsema/BC/Util.h"
 
-#include "mcsema/cfgToLLVM/ArchOps.h"
-#include "mcsema/cfgToLLVM/InstructionDispatch.h"
-#include "mcsema/cfgToLLVM/toModule.h"
+#include "mcsema/BC/Lift.h"
+#include "mcsema/BC/Util.h"
 
 using namespace std;
 using namespace boost;
 using namespace llvm;
 
 
-
-llvm::Module *createModuleForArch(std::string name, const std::string &triple)
+CFGToLLVM::CFGToLLVM(boost::python::object input)
 {
-	llvm::Module *M = new llvm::Module(name, llvm::getGlobalContext());
-	llvm::Triple TT = llvm::Triple(triple);
-	M->setTargetTriple(triple);
-
-	std::string layout;
-
-	if (TT.getOS() == llvm::Triple::Win32)
-	{
-		if (TT.getArch() == llvm::Triple::x86)
-		{
-			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-f80:128:128-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S32";
-		}
-		else if (TT.getArch() == llvm::Triple::x86_64)
-		{
-			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128";
-		}
-		else
-		{
-			std::cerr << "Unsupported arch in triple: " << triple << "\n";
-			return nullptr;
-		}
-	}
-	else if (TT.getOS() == llvm::Triple::Linux)
-	{
-		if (TT.getArch() == llvm::Triple::x86)
-		{
-			layout = "e-p:32:32:32-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64-f32:32:32-f64:32:64-v64:64:64-v128:128:128-a0:0:64-f80:32:32-n8:16:32-S128";
-		}
-		else if (TT.getArch() == llvm::Triple::x86_64)
-		{
-			// x86_64-linux-gnu
-			layout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128";
-		}
-		else
-		{
-			std::cerr << "Unsupported arch in triple: " << triple << "\n";
-			return nullptr;
-		}
-	}
-	else
-	{
-		std::cerr << "Unsupported OS in triple: " << triple << "\n";
-		return nullptr;
-	}
-
-	M->setDataLayout(layout);
-	return M;
-}
-
-
-
-
-static VA findSymInModule(NativeModulePtr mod, const std::string &sym_name)
-{
-	for (auto &sym : mod->getEntryPoints())
-	{
-		if (sym.getName() == sym_name)
-		{
-			return sym.getAddr();
-		}
-	}
-	return (VA)(-1);
-}
-
-CFGToLLVM::CFGToLLVM(std::string target_triple, boost::python::object input)
-{
-	/*this->target_triple = target_triple;
-	LookupTarget();
-
 	python::extract<NativeModulePtr> module_extract(input);
 	if(module_extract.check())
 		this->module = module_extract();
@@ -112,27 +38,104 @@ CFGToLLVM::CFGToLLVM(std::string target_triple, boost::python::object input)
 	{
 		std::cerr << "Reading module ..." << std::endl;
 		std::string cfg_file = python::extract<std::string>(input);
-		this->module = readModule(cfg_file, ProtoBuff, list<VA>(), x86_target);
-	}*/
-}
-
-void CFGToLLVM::LookupTarget()
-{
-	std::string errstr;
-	cout << "Looking up target..." << endl;
-	x86_target = TargetRegistry::lookupTarget(target_triple, errstr);
-
-	if(x86_target == nullptr)
-	{
-		std::cerr << "Could not find target triple: " << target_triple << "\n";
-		std::cerr << "Error: " << errstr << "\n";
-		//return 0;
+		this->module = ReadProtoBuf(cfg_file);
 	}
 }
 
+static VA FindSymbolInModule(NativeModulePtr mod, const std::string &sym_name) {
+	for (auto &sym : mod->getEntryPoints()) {
+		if (sym.getName() == sym_name) {
+			return sym.getAddr();
+		}
+	}
+	return static_cast<VA>( -1);
+}
 
 bool CFGToLLVM::Execute()
 {
+	auto context = new llvm::LLVMContext;
+
+
+	if (python::len(entry_points) == 0)
+	{
+		std::cerr << "At least one entry point must be specified" << std::endl;
+		return false;
+	}
+
+	if (!InitArch(context, os, arch))
+	{
+		std::cerr << "Cannot initialize for arch " << arch << " and OS " << os << std::endl;
+		return false;
+	}
+
+	auto M = CreateModule(context);
+	if (!M)
+	{
+		return false;
+	}
+
+	auto triple = M->getTargetTriple();
+
+	if(!module)
+	{
+		outs() << "No module.\n";
+		return false;
+	}
+
+	//reproduce NativeModule from CFG input argument
+	try
+	{
+		//now, convert it to an LLVM module
+		ArchInitAttachDetach(M);
+
+		if (!LiftCodeIntoModule(module, M))
+		{
+			std::cerr << "Failure to convert to LLVM module!" << std::endl;
+			return false;
+		}
+
+		std::set<VA> entry_point_pcs;
+		for(unsigned int i=0; i<python::len(entry_points); i++)
+		{
+			std::string entry_point_name = python::extract<std::string>(entry_points[i]);
+
+			auto entry_pc = FindSymbolInModule(module, entry_point_name);
+			if (entry_pc != static_cast<VA>( -1))
+			{
+				std::cerr << "Adding entry point: " << entry_point_name << std::endl
+						  << entry_point_name << " is implemented by sub_" << std::hex
+						  << entry_pc << std::endl;
+
+				if ( !ArchAddEntryPointDriver(M, entry_point_name, entry_pc))
+					return false;
+
+				entry_point_pcs.insert(entry_pc);
+			}
+			else
+			{
+				std::cerr << "Could not find entry point: " << entry_point_name
+						  << "; aborting" << std::endl;
+				return false;
+			}
+		}
+
+		RenameLiftedFunctions(module, M, entry_point_pcs);
+
+
+		raw_string_ostream os(bitcode_data);
+		WriteBitcodeToFile(M, os);
+
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << "error: " << std::endl << e.what() << std::endl;
+		return false;
+	}
+
+	return true;
+
+
+
 	/*try
 	{
 		if(!module)
@@ -228,17 +231,16 @@ bool CFGToLLVM::Execute()
 		return false;
 	}
 	*/
-	return true;
 }
 
 bool CFGToLLVM::ExecuteAndSave(std::string output_file)
 {
-	/*if(!Execute())
+	if(!Execute())
 		return false;
 
 	try
 	{
-		string error_info;
+		std::error_code error_info;
 		llvm::tool_output_file Out(output_file.c_str(), error_info, sys::fs::F_None);
 		Out.os() << bitcode_data;
 		Out.keep();
@@ -247,7 +249,7 @@ bool CFGToLLVM::ExecuteAndSave(std::string output_file)
 	{
 		cout << "error: " << endl << e.what() << endl;
 		return false;
-	}*/
+	}
 
 	return true;
 }

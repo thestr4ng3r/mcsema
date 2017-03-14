@@ -42,5 +42,5 @@ print("\n---------------------------------------")
 print("Recompiling and testing")
 print("---------------------------------------")
 
-call("clang -m32 ../../../drivers/ELF_32_linux.S demo_test_opt.bc demo_driver.c -o demo_driver")
+call("clang-3.8 -m32 ../../../generated/ELF_32_linux.S demo_test_opt.bc demo_driver.c -o demo_driver")
 call("./demo_driver")

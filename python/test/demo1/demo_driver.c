@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../../../mc-sema/common/RegisterState.h"
+#include "../../../mcsema/Arch/X86/Runtime/State.h"
 
 #define add_one_raw sub_8000001
 extern void add_one_raw(RegState *);
@@ -13,12 +13,12 @@ int add_one_driver(int v)
 
     memset(&reg_state, 0, sizeof(reg_state));
 
-    reg_state.ESP = (unsigned long)&stack[4096*9];
-    reg_state.EAX = v;
+    reg_state.RSP = (unsigned long)&stack[4096*9];
+    reg_state.RAX = v;
 
     add_one_raw(&reg_state);
 
-    return reg_state.EAX;
+    return reg_state.RAX;
 }
 
 

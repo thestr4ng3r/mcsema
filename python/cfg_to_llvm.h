@@ -10,31 +10,38 @@
 
 #include <boost/python.hpp>
 #include <llvm/Support/TargetRegistry.h>
+#include <mcsema/CFG/CFG.h>
 
-#include "mcsema/cfgToLLVM/raiseX86.h"
+//#include "mcsema/cfgToLLVM/raiseX86.h"
 
 class CFGToLLVM
 {
 	private:
-		std::string target_triple;
-		const llvm::Target *x86_target;
+		//std::string target_triple;
+		//const llvm::Target *x86_target;
 
 		NativeModulePtr module;
 
+		std::string os;
+		std::string arch;
 		boost::python::list entry_points;
 
 		std::string bitcode_data;
 
-		void LookupTarget();
-
 	public:
-		CFGToLLVM(std::string target_triple, boost::python::object input);
+		CFGToLLVM(boost::python::object input);
 
 		bool Execute();
 		bool ExecuteAndSave(std::string output_file);
 
-		const std::string GetTargetTriple() const			{ return target_triple; }
-		void SetTargetTriple(std::string triple)			{ this->target_triple = triple; }
+		const std::string GetOS() const						{ return os; }
+		void SetOS(std::string os)							{ this->os = os; }
+
+		const std::string GetArch() const					{ return arch; }
+		void SetArch(std::string arch)						{ this->arch = arch;}
+
+		//const std::string GetTargetTriple() const			{ return target_triple; }
+		//void SetTargetTriple(std::string triple)			{ this->target_triple = triple; }
 
 		NativeModulePtr GetNativeModule() const				{ return module; }
 		void SetNativeModule(NativeModulePtr module)		{ this->module = module; }

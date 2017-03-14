@@ -21,16 +21,50 @@ if(MCSEMA_BUILD_PYTHON)
 			mcsema_init.cpp
 			mcsema_init.h)
 
+	set(MCSEMA_PYTHON_LIFT_SRC
+			${MCSEMA_DIR}/mcsema/Arch/Arch.cpp
+
+			${MCSEMA_DIR}/mcsema/Arch/X86/Dispatch.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Lift.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Register.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Util.cpp
+
+			${MCSEMA_DIR}/mcsema/BC/Lift.cpp
+			${MCSEMA_DIR}/mcsema/BC/Util.cpp
+			${MCSEMA_DIR}/mcsema/CFG/CFG.cpp
+			${MCSEMA_DIR}/generated/CFG.pb.cc
+
+			${MCSEMA_DIR}/mcsema/cfgToLLVM/JumpTables.cpp
+			${MCSEMA_DIR}/mcsema/cfgToLLVM/TransExcn.cpp
+
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/ADD.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/bitops.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/Branches.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/CMOV.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/CMPTEST.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/Exchanges.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/fpu.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/INCDECNEG.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/Jcc.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/Misc.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/MOV.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/MULDIV.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/SETcc.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/ShiftRoll.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/SSE.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/Stack.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/String.cpp
+			${MCSEMA_DIR}/mcsema/Arch/X86/Semantics/SUB.cpp)
+
 	set(PROTOBUF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/protobuf-2.5.0/src)
 
 	set(MCSEMA_PYTHON_INCLUDE_DIRS
-			${LLVM_INCLUDE_DIRS}
-			${LLVM_INSTALL_PREFIX}/llvm/lib/Target/X86
-			${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/peToCFG
-			${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/cfgToLLVM
-			${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/binary_common
-			${CMAKE_CURRENT_BINARY_DIR}/../mc-sema/binary_common
-			${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/common
+			#${LLVM_INCLUDE_DIRS}
+			#${LLVM_INSTALL_PREFIX}/llvm/lib/Target/X86
+			#${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/cfgToLLVM
+			#${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/binary_common
+			#${CMAKE_CURRENT_BINARY_DIR}/../mc-sema/binary_common
+			#${CMAKE_CURRENT_SOURCE_DIR}/../mc-sema/common
 			${Boost_INCLUDE_DIRS}
 			${CMAKE_CURRENT_BINARY_DIR}
 			${PROTOBUF_INCLUDE_DIR}
@@ -53,11 +87,6 @@ if(MCSEMA_BUILD_PYTHON)
 			${ROOT_BINARY_DIR}/mc-sema/cfgToLLVM
 			${ROOT_BINARY_DIR}/mc-sema/peToCFG
 			${LLVM_LIBRARY_DIRS})
-
-	set(MCSEMA_PYTHON_LIBRARIES
-			cfgToLLVM
-			peToCFG
-			binary_common)
 
 	set(MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE
 			LLVMBitReader
@@ -91,13 +120,12 @@ if(MCSEMA_BUILD_PYTHON)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cfg_ida.py ${MCSEMA_PYTHON_PACKAGE_BINARY_DIR} COPYONLY)
 	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/__init__.py ${MCSEMA_PYTHON_PACKAGE_BINARY_DIR} COPYONLY)
 
-	add_library(mcsema-python SHARED ${MCSEMA_PYTHON_SRC})
+	add_library(mcsema-python SHARED ${MCSEMA_PYTHON_SRC} ${MCSEMA_PYTHON_LIFT_SRC})
 	set_target_properties(mcsema-python PROPERTIES
 			OUTPUT_NAME "mcsema"
 			PREFIX ""
 			LIBRARY_OUTPUT_DIRECTORY ${MCSEMA_PYTHON_PACKAGE_BINARY_DIR})
 
-	target_link_libraries(mcsema-python ${MCSEMA_PYTHON_LIBRARIES})
 	target_link_libraries(mcsema-python "-Wl,--whole-archive" ${MCSEMA_PYTHON_LIBRARIES_WHOLE_ARCHIVE} "-Wl,--no-whole-archive")
 
 
