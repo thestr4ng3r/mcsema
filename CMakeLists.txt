@@ -13,10 +13,10 @@ if(WIN32)
   SET(CMAKE_EXE_LINKER_FLAGS "/LARGEADDRESSAWARE ${CMAKE_EXE_LINKER_FLAGS}")
 endif(WIN32)
 
-set(CMAKE_MODULE_PATH "${LLVM_DIR}/cmake/modules ${CMAKE_MODULE_PATH}")
+set(CMAKE_MODULE_PATH "${LLVM_DIR}/cmake/modules;${CMAKE_MODULE_PATH}")
 
 # Configure with the build LLVM
-find_package(LLVM 3.8 REQUIRED CONFIG)
+find_package(LLVM 3.8 REQUIRED CONFIG HINTS ${MCSEMA_LLVM_BUILD_DIR}/share/llvm/cmake)
 add_definitions(${LLVM_DEFINITIONS})
 
 # Get protobufs.
@@ -38,7 +38,7 @@ include_directories(${MCSEMA_DIR})
 include_directories(${MCSEMA_DIR}/third_party)
 include_directories(${MCSEMA_LLVM_DIR})
 include_directories(${MCSEMA_LLVM_DIR}/include)
-include_directories(${MCSEMA_LLVM_DIR}/lib/Target/X86/)
+include_directories(${MCSEMA_LLVM_DIR}/lib/Target/X86)
 include_directories(${MCSEMA_BUILD_DIR}/include)
 include_directories(${MCSEMA_LLVM_BUILD_DIR}/include)
 include_directories(${MCSEMA_LLVM_BUILD_DIR}/lib/Target/X86)
@@ -122,9 +122,9 @@ target_link_libraries(mcsema-lift
   LLVMInstrumentation
   LLVMObjCARCOpts)
 
-target_compile_options(mcsema-lift PUBLIC
-        -fno-rtti
-        -DGOOGLE_PROTOBUF_NO_RTTI)
+#target_compile_options(mcsema-lift PUBLIC
+#        -fno-rtti
+#        -DGOOGLE_PROTOBUF_NO_RTTI)
 
 install(
   TARGETS mcsema-lift

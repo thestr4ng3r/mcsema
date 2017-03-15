@@ -189,7 +189,7 @@ path to the binary.</p>
 <dl class="attribute">
 <dt id="mcsema.msema.BinDescend.target_triple">
 <code class="descname">target_triple</code><a class="headerlink" href="#mcsema.msema.BinDescend.target_triple" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>readonly</em>. Contains the target triple which can be passed to <a class="reference internal" href="#mcsema.msema.CFGToLLVM" title="mcsema.msema.CFGToLLVM"><code class="xref py py-class docutils literal"><span class="pre">CFGToLLVM</span></code></a>.</p>
+<dd><p><em>readonly</em>. Contains the target triple which can be passed to <a class="reference internal" href="#mcsema.msema.Lifter" title="mcsema.msema.Lifter"><code class="xref py py-class docutils literal"><span class="pre">Lifter</span></code></a>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -208,37 +208,37 @@ in McSema&#8217;s Protobuf format.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="mcsema.msema.CFGToLLVM">
-<em class="property">class </em><code class="descclassname">mcsema.msema.</code><code class="descname">CFGToLLVM</code><span class="sig-paren">(</span><em>target_triple</em>, <em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.CFGToLLVM" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter">
+<em class="property">class </em><code class="descclassname">mcsema.msema.</code><code class="descname">Lifter</code><span class="sig-paren">(</span><em>target_triple</em>, <em>cfg</em><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.Lifter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exposes the functionality of cfg_to_bc.
 <em>target_triple</em> can be passed from :<a class="reference internal" href="#mcsema.msema.BinDescend" title="mcsema.msema.BinDescend"><code class="xref py py-class docutils literal"><span class="pre">BinDescend</span></code></a>.
 <em>cfg</em> can be either a path to a CFG file as a string or an instance of <a class="reference internal" href="#mcsema.msema.NativeModule" title="mcsema.msema.NativeModule"><code class="xref py py-class docutils literal"><span class="pre">NativeModule</span></code></a>.</p>
 <dl class="attribute">
-<dt id="mcsema.msema.CFGToLLVM.native_module">
-<code class="descname">native_module</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.native_module" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter.native_module">
+<code class="descname">native_module</code><a class="headerlink" href="#mcsema.msema.Lifter.native_module" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference internal" href="#mcsema.msema.NativeModule" title="mcsema.msema.NativeModule"><code class="xref py py-class docutils literal"><span class="pre">NativeModule</span></code></a> used as the input to lift.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="mcsema.msema.CFGToLLVM.target_triple">
-<code class="descname">target_triple</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.target_triple" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter.target_triple">
+<code class="descname">target_triple</code><a class="headerlink" href="#mcsema.msema.Lifter.target_triple" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="mcsema.msema.CFGToLLVM.entry_points">
-<code class="descname">entry_points</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.entry_points" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter.entry_points">
+<code class="descname">entry_points</code><a class="headerlink" href="#mcsema.msema.Lifter.entry_points" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of names for entry points.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="mcsema.msema.CFGToLLVM.bitcode">
-<code class="descname">bitcode</code><a class="headerlink" href="#mcsema.msema.CFGToLLVM.bitcode" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter.bitcode">
+<code class="descname">bitcode</code><a class="headerlink" href="#mcsema.msema.Lifter.bitcode" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>readonly</em>. Contains lifted bitcode after a successful translation.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="mcsema.msema.CFGToLLVM.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.CFGToLLVM.execute" title="Permalink to this definition">¶</a></dt>
+<dt id="mcsema.msema.Lifter.execute">
+<code class="descname">execute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mcsema.msema.Lifter.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Translate to LLVM. Resulting bitcode can be read from <em>bitcode</em>.</p>
 </dd></dl>
 

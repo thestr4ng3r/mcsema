@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "RegisterState.h"
+#include "../../../mcsema/Arch/X86/Runtime/State.h"
 
 #ifdef DEMO_KLEE
 #include <klee/klee.h>

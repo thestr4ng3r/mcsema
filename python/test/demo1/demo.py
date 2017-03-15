@@ -11,8 +11,6 @@ from mcsema import mcsema
 
 call("nasm -f elf32 -o demo_test.o demo_test.asm")
 
-mcsema.initialize()
-
 print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
@@ -29,7 +27,7 @@ print("\n\n---------------------------------------")
 print("Translate to LLVM")
 print("---------------------------------------")
 
-cfg_to_llvm = mcsema.CFGToLLVM("i686-pc-linux-gnu", "demo_test.cfg")
+cfg_to_llvm = mcsema.Lifter("linux", "x86", "demo_test.cfg")
 cfg_to_llvm.entry_points = ["add_one"]
 cfg_to_llvm.execute("demo_test.bc")
 

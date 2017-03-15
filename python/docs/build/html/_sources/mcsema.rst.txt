@@ -44,7 +44,7 @@ mcsema.mcsema -- McSema's internal functionality
 
    .. attribute:: target_triple
 
-      *readonly*. Contains the target triple which can be passed to :class:`CFGToLLVM`.
+      *readonly*. Contains the target triple which can be passed to :class:`Lifter`.
 
    .. method:: execute()
 
@@ -56,7 +56,7 @@ mcsema.mcsema -- McSema's internal functionality
       in McSema's Protobuf format.
 
 
-.. class:: CFGToLLVM(target_triple, cfg)
+.. class:: Lifter(target_triple, cfg)
 
    Exposes the functionality of cfg_to_bc.
    *target_triple* can be passed from ::class:`BinDescend`.

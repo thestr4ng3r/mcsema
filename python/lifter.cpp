@@ -2,7 +2,7 @@
 // Created by florian on 08.01.17.
 //
 
-#include "cfg_to_llvm.h"
+#include "lifter.h"
 
 #include <iostream>
 #include <string>
@@ -21,7 +21,8 @@
 
 #include "mcsema/Arch/Arch.h"
 
-#include "mcsema/BC/Lift.h"
+//#include "mcsema/BC/Lift.h"
+#include "lift.h"
 #include "mcsema/BC/Util.h"
 
 using namespace std;
@@ -29,8 +30,23 @@ using namespace boost;
 using namespace llvm;
 
 
-CFGToLLVM::CFGToLLVM(boost::python::object input)
+Lifter::Lifter(std::string os, std::string arch, boost::python::object input)
 {
+	this->os = os;
+	this->arch = arch;
+
+	ignore_unsupported_insts = false;
+	add_breakpoints = false;
+	add_tracer = false;
+
+	context = new llvm::LLVMContext;
+
+	if (!InitArch(context, os, arch))
+	{
+		std::cerr << "Cannot initialize for arch " << arch << " and OS " << os << std::endl;
+		return;
+	}
+
 	python::extract<NativeModulePtr> module_extract(input);
 	if(module_extract.check())
 		this->module = module_extract();
@@ -51,22 +67,14 @@ static VA FindSymbolInModule(NativeModulePtr mod, const std::string &sym_name) {
 	return static_cast<VA>( -1);
 }
 
-bool CFGToLLVM::Execute()
+bool Lifter::Execute()
 {
-	auto context = new llvm::LLVMContext;
-
-
 	if (python::len(entry_points) == 0)
 	{
 		std::cerr << "At least one entry point must be specified" << std::endl;
 		return false;
 	}
 
-	if (!InitArch(context, os, arch))
-	{
-		std::cerr << "Cannot initialize for arch " << arch << " and OS " << os << std::endl;
-		return false;
-	}
 
 	auto M = CreateModule(context);
 	if (!M)
@@ -88,7 +96,7 @@ bool CFGToLLVM::Execute()
 		//now, convert it to an LLVM module
 		ArchInitAttachDetach(M);
 
-		if (!LiftCodeIntoModule(module, M))
+		if (!LiftCodeIntoModule(module, M, ignore_unsupported_insts, add_breakpoints, add_tracer))
 		{
 			std::cerr << "Failure to convert to LLVM module!" << std::endl;
 			return false;
@@ -233,7 +241,7 @@ bool CFGToLLVM::Execute()
 	*/
 }
 
-bool CFGToLLVM::ExecuteAndSave(std::string output_file)
+bool Lifter::ExecuteAndSave(std::string output_file)
 {
 	if(!Execute())
 		return false;
