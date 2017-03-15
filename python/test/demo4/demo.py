@@ -16,10 +16,8 @@ print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
 
-cfg_gen = common.cfg_generator("demo_test.o", "x86")
-cfg_gen.debug_mode = True
-cfg_gen.batch_mode = True
-cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+cfg_gen = common.cfg_generator("demo_test.o", "x86", "linux")
+cfg_gen.func_maps = ["../../../tools/mcsema_disass/defs/linux.txt"]
 cfg_gen.entry_symbols = ["switch_func"]
 cfg_gen.execute("demo_test.cfg")
 

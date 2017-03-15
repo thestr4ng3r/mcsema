@@ -4,7 +4,7 @@ import os.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from sys import argv
 import subprocess
-import os
+from os import getenv
 
 import mcsema
 import cfg_ida
@@ -23,26 +23,22 @@ def begin(noclean=False):
 		subprocess.call("rm -f " + clean_files, shell=True)
 
 
-def cfg_generator(input_file, system_arch):
-	if system_arch == "x86-64":
+def cfg_generator(input_file, arch, os):
+	if arch == "amd64":
 		ida_env = "IDA64_EXEC"
 	else:
 		ida_env = "IDA_EXEC"
 
-	ida_exec = os.getenv(ida_env)
+	ida_exec = getenv(ida_env)
 
 	if ida_exec:
 		print("Using IDA \"" + ida_exec + "\" for CFG generation.")
-		return cfg_ida.IDACFGGenerator(ida_exec, "../../../mc-sema/bin_descend/get_cfg.py", input_file)
+		return cfg_ida.IDACFGGenerator(ida_exec, "../../../tools/mcsema_disass/ida/get_cfg.py", input_file, arch, os)
 	else:
 		print("---")
 		print("IDA Pro executable has not been found.")
-		print("To use IDA for CFG recovery, specify the path to idaq and idaq64 in the environment variables IDA_EXEC and IDA64_EXEC.")
 		print("----")
-		print("Using bin_descend for CFG generation.")
-		bin_descend = mcsema.mcsema.BinDescend(input_file)
-		bin_descend.arch = system_arch
-		return bin_descend
+		return None
 
 def call(cmd):
 	print("-- %s" % cmd)

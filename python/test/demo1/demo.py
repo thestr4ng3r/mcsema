@@ -15,7 +15,7 @@ print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
 
-cfg_gen = common.cfg_generator("demo_test.o", "x86")
+cfg_gen = common.cfg_generator("demo_test.o", "x86", "linux")
 cfg_gen.debug_mode = False
 cfg_gen.func_maps = []
 cfg_gen.entry_symbols = ["add_one"]

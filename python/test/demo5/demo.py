@@ -15,11 +15,10 @@ print("---------------------------------------")
 print("Generate CFG")
 print("---------------------------------------")
 
-cfg_gen = common.cfg_generator("qual", "x86-64")
+cfg_gen = common.cfg_generator("qual", "amd64", "linux")
 
-cfg_gen.debug_mode = True
 cfg_gen.batch_mode = True
-cfg_gen.func_maps = ["../../../mc-sema/std_defs/linux.txt"]
+cfg_gen.func_maps = ["../../../tools/mcsema_disass/defs/linux.txt"]
 cfg_gen.entry_symbols = ["main"]
 cfg_gen.ignore_native_entry_points = True
 
