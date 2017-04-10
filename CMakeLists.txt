@@ -13,7 +13,7 @@ if(WIN32)
   SET(CMAKE_EXE_LINKER_FLAGS "/LARGEADDRESSAWARE ${CMAKE_EXE_LINKER_FLAGS}")
 endif(WIN32)
 
-set(CMAKE_MODULE_PATH "${LLVM_DIR}/cmake/modules" "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_ROOT}/Modules")
+list(APPEND CMAKE_MODULE_PATH "${LLVM_DIR}/cmake/modules" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Configure with the build LLVM
 find_package(LLVM 3.8 REQUIRED CONFIG)
@@ -23,33 +23,26 @@ include (LLVMUtils)
 include (GetGitRevisionDescription)
 
 # we need C++11
-if(NOT WIN32)
-  # WIN32 defaults to CXX11 by default, and setting it explicitly here
-  # confuses clang-cl, which will bail out with "unknown flag -std=g++11"
+# WIN32 defaults to CXX11 by default, and setting it explicitly here
+# confuses clang-cl, which will bail out with "unknown flag -std=g++11"
 
-  #FindPackage for protobuf is terrible for win32
-  # it assumes MSVC built protobuf from a visual studio project
-  #... we build with custom cmake, so it will never be found
-  #... but it should work for other OSes where we install from a package
+#FindPackage for protobuf is terrible for win32
+# it assumes MSVC built protobuf from a visual studio project
+#... we build with custom cmake, so it will never be found
+#... but it should work for other OSes where we install from a package
 
-  set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
-  if(APPLE)
-      set(PROTOBUF_ROOT "${CMAKE_SOURCE_DIR}/third_party/protobuf")
-      set(Protobuf_LIBRARIES "${PROTOBUF_ROOT}/build/lib")
-      set(Protobuf_INCLUDE_DIR "${PROTOBUF_ROOT}/src")
-  endif()
-
-  find_package(Protobuf REQUIRED)
-else()
-   string(REGEX REPLACE "\\\\" "/" CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR})
-   # on win32, manuallys set protobuf goodness
-   set(PROTOBUF_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/include")
-   set(PROTOBUF_LIBRARIES "${CMAKE_SOURCE_DIR}/lib/protobuf.lib")
-   set(PROTOBUF_PROTOC_EXECUTABLE "${CMAKE_SOURCE_DIR}/bin/protoc.exe")
+if(APPLE)
+  set(PROTOBUF_ROOT "${CMAKE_SOURCE_DIR}/third_party/protobuf")
+  set(Protobuf_LIBRARIES "${PROTOBUF_ROOT}/build/lib")
+  set(Protobuf_INCLUDE_DIR "${PROTOBUF_ROOT}/src")
 endif()
 
-include_directories(${PROTOBUF_INCLUDE_DIRS})
+find_package(Protobuf REQUIRED)
+
+
+include_directories(${Protobuf_INCLUDE_DIRS})
 
 include_directories(${CMAKE_SOURCE_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/third_party)
@@ -57,8 +50,8 @@ include_directories(${MCSEMA_LLVM_DIR})
 include_directories(${MCSEMA_LLVM_DIR}/include)
 include_directories(${MCSEMA_LLVM_DIR}/lib/Target/X86/)
 include_directories(${MCSEMA_BUILD_DIR}/include)
-include_directories(${MCSEMA_BUILD_DIR}/llvm/include)
-include_directories(${MCSEMA_BUILD_DIR}/llvm/lib/Target/X86)
+include_directories(${MCSEMA_LLVM_DIR}/build/include)
+include_directories(${MCSEMA_LLVM_DIR}/build/lib/Target/X86)
 include_directories(${MCSEMA_GEN_DIR})
 
 # Make sure we can find the mcsema headers.
@@ -179,7 +172,7 @@ set(PROTOBUF_OUTPUT_FILE_LIST
 add_custom_command(
     OUTPUT ${PROTOBUF_OUTPUT_FILE_LIST}
 
-    COMMAND "${PROTOBUF_PROTOC_EXECUTABLE}" --cpp_out "${MCSEMA_GEN_DIR}" --python_out "${MCSEMA_GEN_DIR}" --proto_path "${CMAKE_SOURCE_DIR}/mcsema/CFG" "${PROTOBUF_CONFIGURATION}"
+    COMMAND "${Protobuf_PROTOC_EXECUTABLE}" --cpp_out "${MCSEMA_GEN_DIR}" --python_out "${MCSEMA_GEN_DIR}" --proto_path "${CMAKE_SOURCE_DIR}/mcsema/CFG" "${PROTOBUF_CONFIGURATION}"
 
     DEPENDS "${CMAKE_SOURCE_DIR}/mcsema/CFG/CFG.h"
     MAIN_DEPENDENCY "${PROTOBUF_CONFIGURATION}"
@@ -226,7 +219,7 @@ add_executable(mcsema-lift
   ${CMAKE_SOURCE_DIR}/mcsema/Arch/X86/Semantics/SUB.cpp)
 
 target_link_libraries(mcsema-lift
-  ${PROTOBUF_LIBRARIES}
+  ${Protobuf_LIBRARIES}
   LLVMBitReader
   LLVMBitWriter
   LLVMMCDisassembler
