@@ -52,3 +52,5 @@ package
 *.deb
 *.rpm
 # Clang, which is tracked independently.
+
+.idea
